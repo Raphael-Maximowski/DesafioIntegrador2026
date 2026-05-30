@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
+import { OrderItem } from '../../orders/entities/order-item.entity';
 
 const numericToNumber = {
   to: (value: number) => value,
@@ -37,6 +39,9 @@ export class Product {
   })
   @JoinColumn({ name: 'categoryId' })
   category: Category | null;
+
+  @OneToMany(() => OrderItem, (item) => item.product)
+  orderItems: OrderItem[];
 
   @CreateDateColumn()
   createdAt: Date;

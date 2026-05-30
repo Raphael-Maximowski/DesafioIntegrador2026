@@ -13,6 +13,7 @@ import { UsersModule } from './domains/users/users.module';
 import { AuthModule } from './domains/auth/auth.module';
 import { CustomersModule } from './domains/customers/customers.module';
 import { ProductsModule } from './domains/products/products.module';
+import { OrdersModule } from './domains/orders/orders.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ProductsModule } from './domains/products/products.module';
     AuthModule,
     CustomersModule,
     ProductsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [
