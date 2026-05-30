@@ -11,6 +11,7 @@ import { RedisModule } from './common/redis/redis.module';
 import { mailerConfig } from './common/mailer/mailer.config';
 import { UsersModule } from './domains/users/users.module';
 import { AuthModule } from './domains/auth/auth.module';
+import { CustomersModule } from './domains/customers/customers.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from './domains/auth/auth.module';
     RedisModule,
     UsersModule,
     AuthModule,
+    CustomersModule,
   ],
   controllers: [AppController],
   providers: [
