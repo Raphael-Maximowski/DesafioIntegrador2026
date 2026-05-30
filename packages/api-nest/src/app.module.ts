@@ -12,6 +12,7 @@ import { mailerConfig } from './common/mailer/mailer.config';
 import { UsersModule } from './domains/users/users.module';
 import { AuthModule } from './domains/auth/auth.module';
 import { CustomersModule } from './domains/customers/customers.module';
+import { ProductsModule } from './domains/products/products.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CustomersModule } from './domains/customers/customers.module';
     UsersModule,
     AuthModule,
     CustomersModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [
