@@ -10,7 +10,7 @@ x-django-env: &django-env
   MODEL_ARTIFACT_DIR: artifacts
 
 services:
-  postgres-django:
+  postgres-flask:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: app
@@ -19,7 +19,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata-django:/var/lib/postgresql/data
+      - pgdata-flask:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app"]
       interval: 5s
@@ -52,28 +52,32 @@ services:
       timeout: 5s
       retries: 5
 
-  api-django:
-    build: ./packages/api-django
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    environment: *django-env
+  api-flask:
+    container_name: api-flask
+    build: ./packages/api-flask
+    command: gunicorn run:app -w 4 -b 0.0.0.0:8000
+    environment: 
+      DATABASE_URL: postgres://app:app@postgres-flask:5432/app
+      SECRET_KEY: dev-insecure-change-me
+      DEBUG: "True"
     volumes:
-      - ./packages/api-django:/app
+      - ./packages/api-flask:/app
     ports:
       - "8000:8000"
     depends_on:
-      postgres-django:
+      postgres-flask:
         condition: service_healthy
       redis:
         condition: service_healthy
 
   celery-worker:
-    build: ./packages/api-django
+    build: ./packages/api-flask
     command: celery -A config.celery worker -l info
     environment: *django-env
     volumes:
-      - ./packages/api-django:/app
+      - ./packages/api-flask:/app
     depends_on:
-      postgres-django:
+      postgres-flask:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -106,9 +110,9 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - api-django
+      - api-flask
       - api-nest
 
 volumes:
-  pgdata-django:
+  pgdata-flask:
   pgdata-nest:
