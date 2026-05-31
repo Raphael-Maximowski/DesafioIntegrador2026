@@ -17,6 +17,10 @@ export class CustomersRepository {
     private readonly repo: Repository<Customer>,
   ) {}
 
+  count(): Promise<number> {
+    return this.repo.count();
+  }
+
   findById(id: string): Promise<Customer | null> {
     return this.repo.findOne({ where: { id } });
   }

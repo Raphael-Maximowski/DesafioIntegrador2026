@@ -37,6 +37,10 @@ export class CategoriesRepository {
     return this.repo.findOne({ where: { id } });
   }
 
+  count(): Promise<number> {
+    return this.repo.count();
+  }
+
   create(data: Partial<Category>): Promise<Category> {
     return this.repo.save(this.repo.create(data));
   }

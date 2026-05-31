@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import { ProductsRepository } from './products.repository';
+import { InventoryStats, ProductsRepository } from './products.repository';
 import { CategoriesRepository } from './categories.repository';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -57,6 +57,10 @@ export class ProductsService {
   async remove(id: string): Promise<void> {
     const affected = await this.products.delete(id);
     if (affected === 0) throw new NotFoundException('Product not found');
+  }
+
+  getInventoryStats(lowStockThreshold: number): Promise<InventoryStats> {
+    return this.products.getInventoryStats(lowStockThreshold);
   }
 
   private async assertCategoryExists(

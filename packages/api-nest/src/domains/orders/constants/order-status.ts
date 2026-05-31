@@ -8,3 +8,5 @@ export const ORDER_STATUSES = [
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const DEFAULT_ORDER_STATUS: OrderStatus = 'PENDING';
+
+export const SALE_STATUSES: OrderStatus[] = ['PAID', 'SHIPPED'];

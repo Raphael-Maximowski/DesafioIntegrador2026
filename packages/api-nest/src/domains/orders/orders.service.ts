@@ -7,13 +7,20 @@ import { QueryFailedError } from 'typeorm';
 import { CustomersService } from '../customers/customers.service';
 import { ProductsService } from '../products/products.service';
 import { Product } from '../products/entities/product.entity';
-import { DEFAULT_ORDER_STATUS } from './constants/order-status';
+import { DEFAULT_ORDER_STATUS, SALE_STATUSES } from './constants/order-status';
 import {
+  CategorySalesRow,
   CreateOrderInput,
+  LtvByCustomerRow,
+  MonthlySalesRow,
   OrderItemInput,
   OrdersRepository,
+  RegionSalesRow,
+  SalesSummary,
   StockConsumption,
+  TopProductRow,
 } from './orders.repository';
+import { OrderStatus } from './constants/order-status';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
@@ -124,6 +131,32 @@ export class OrdersService {
   async removeItem(orderId: string, itemId: string): Promise<void> {
     const deleted = await this.orders.deleteItem(orderId, itemId);
     if (!deleted) throw new NotFoundException('Order item not found');
+  }
+
+  salesSummary(from: Date, to: Date): Promise<SalesSummary> {
+    return this.orders.getSalesSummary(from, to, SALE_STATUSES);
+  }
+
+  monthlySales(from: Date, to: Date): Promise<MonthlySalesRow[]> {
+    return this.orders.getMonthlySales(from, to, SALE_STATUSES);
+  }
+
+  salesByCategory(from: Date, to: Date): Promise<CategorySalesRow[]> {
+    return this.orders.getSalesByCategory(from, to, SALE_STATUSES);
+  }
+
+  topProducts(from: Date, to: Date, limit: number): Promise<TopProductRow[]> {
+    return this.orders.getTopProducts(from, to, SALE_STATUSES, limit);
+  }
+
+  salesByRegion(from: Date, to: Date): Promise<RegionSalesRow[]> {
+    return this.orders.getSalesByRegion(from, to, SALE_STATUSES);
+  }
+
+  ltvByCustomer(
+    statuses: OrderStatus[] = SALE_STATUSES,
+  ): Promise<LtvByCustomerRow[]> {
+    return this.orders.getLtvByCustomer(statuses);
   }
 
   private aggregate(dto: CreateOrderDto): StockConsumption[] {

@@ -14,6 +14,7 @@ import { AuthModule } from './domains/auth/auth.module';
 import { CustomersModule } from './domains/customers/customers.module';
 import { ProductsModule } from './domains/products/products.module';
 import { OrdersModule } from './domains/orders/orders.module';
+import { DashboardModule } from './domains/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { OrdersModule } from './domains/orders/orders.module';
     CustomersModule,
     ProductsModule,
     OrdersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

@@ -44,6 +44,39 @@ export interface CreateOrderInput {
   consumption: StockConsumption[];
 }
 
+export interface SalesSummary {
+  totalSales: number;
+  orderCount: number;
+  distinctCustomers: number;
+}
+
+export interface MonthlySalesRow {
+  month: number;
+  total: number;
+}
+
+export interface CategorySalesRow {
+  categoryName: string;
+  revenue: number;
+}
+
+export interface TopProductRow {
+  productId: string;
+  name: string;
+  categoryName: string;
+  revenue: number;
+}
+
+export interface RegionSalesRow {
+  state: string;
+  revenue: number;
+}
+
+export interface LtvByCustomerRow {
+  customerId: string;
+  ltv: number;
+}
+
 const ORDER_RELATIONS = {
   customer: true,
   items: { product: { category: true } },
@@ -222,5 +255,164 @@ export class OrdersRepository {
       take: limit,
       order: { createdAt: 'DESC' },
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Analytics aggregates.
+  //
+  // These are the only raw QueryBuilder/getRaw* queries in the codebase. They
+  // live here (the sole typeorm layer, per architecture rules) because
+  // GROUP BY / SUM / COUNT DISTINCT / date bucketing cannot be expressed with
+  // FindOptions. Column transformers (e.g. numericToNumber) do NOT run on raw
+  // results, so every numeric/count column is coerced with Number() and a 0
+  // fallback (SUM over an empty set returns null).
+  //
+  // Join discipline (to avoid double-counting via the items fan-out):
+  //   - Order-level money  -> join customer only, SUM(order.totalPrice).
+  //   - Item-level money   -> join items/product/category, SUM(item.unitPrice * item.quantity).
+  // ---------------------------------------------------------------------------
+
+  async getSalesSummary(
+    from: Date,
+    to: Date,
+    statuses: OrderStatus[],
+  ): Promise<SalesSummary> {
+    const raw = await this.repo
+      .createQueryBuilder('order')
+      .select('COALESCE(SUM(order.totalPrice), 0)', 'totalSales')
+      .addSelect('COUNT(order.id)', 'orderCount')
+      .addSelect('COUNT(DISTINCT order.customerId)', 'distinctCustomers')
+      .where('order.status IN (:...statuses)', { statuses })
+      .andWhere('order.createdAt BETWEEN :from AND :to', { from, to })
+      .getRawOne<{
+        totalSales: string | null;
+        orderCount: string | null;
+        distinctCustomers: string | null;
+      }>();
+
+    return {
+      totalSales: Number(raw?.totalSales) || 0,
+      orderCount: Number(raw?.orderCount) || 0,
+      distinctCustomers: Number(raw?.distinctCustomers) || 0,
+    };
+  }
+
+  async getMonthlySales(
+    from: Date,
+    to: Date,
+    statuses: OrderStatus[],
+  ): Promise<MonthlySalesRow[]> {
+    const rows = await this.repo
+      .createQueryBuilder('order')
+      .select('EXTRACT(MONTH FROM order.createdAt)', 'month')
+      .addSelect('SUM(order.totalPrice)', 'total')
+      .where('order.status IN (:...statuses)', { statuses })
+      .andWhere('order.createdAt BETWEEN :from AND :to', { from, to })
+      .groupBy('EXTRACT(MONTH FROM order.createdAt)')
+      .orderBy('month', 'ASC')
+      .getRawMany<{ month: string; total: string | null }>();
+
+    return rows.map((r) => ({
+      month: Number(r.month) || 0,
+      total: Number(r.total) || 0,
+    }));
+  }
+
+  async getSalesByCategory(
+    from: Date,
+    to: Date,
+    statuses: OrderStatus[],
+  ): Promise<CategorySalesRow[]> {
+    const rows = await this.repo
+      .createQueryBuilder('order')
+      .innerJoin('order.items', 'item')
+      .innerJoin('item.product', 'product')
+      .leftJoin('product.category', 'category')
+      .select("COALESCE(category.name, 'Uncategorized')", 'categoryName')
+      .addSelect('SUM(item.unitPrice * item.quantity)', 'revenue')
+      .where('order.status IN (:...statuses)', { statuses })
+      .andWhere('order.createdAt BETWEEN :from AND :to', { from, to })
+      .groupBy("COALESCE(category.name, 'Uncategorized')")
+      .orderBy('revenue', 'DESC')
+      .getRawMany<{ categoryName: string; revenue: string | null }>();
+
+    return rows.map((r) => ({
+      categoryName: r.categoryName,
+      revenue: Number(r.revenue) || 0,
+    }));
+  }
+
+  async getTopProducts(
+    from: Date,
+    to: Date,
+    statuses: OrderStatus[],
+    limit: number,
+  ): Promise<TopProductRow[]> {
+    const rows = await this.repo
+      .createQueryBuilder('order')
+      .innerJoin('order.items', 'item')
+      .innerJoin('item.product', 'product')
+      .leftJoin('product.category', 'category')
+      .select('product.id', 'productId')
+      .addSelect('product.name', 'name')
+      .addSelect("COALESCE(category.name, 'Uncategorized')", 'categoryName')
+      .addSelect('SUM(item.unitPrice * item.quantity)', 'revenue')
+      .where('order.status IN (:...statuses)', { statuses })
+      .andWhere('order.createdAt BETWEEN :from AND :to', { from, to })
+      .groupBy('product.id')
+      .addGroupBy('product.name')
+      .addGroupBy("COALESCE(category.name, 'Uncategorized')")
+      .orderBy('revenue', 'DESC')
+      .limit(limit)
+      .getRawMany<{
+        productId: string;
+        name: string;
+        categoryName: string;
+        revenue: string | null;
+      }>();
+
+    return rows.map((r) => ({
+      productId: r.productId,
+      name: r.name,
+      categoryName: r.categoryName,
+      revenue: Number(r.revenue) || 0,
+    }));
+  }
+
+  async getSalesByRegion(
+    from: Date,
+    to: Date,
+    statuses: OrderStatus[],
+  ): Promise<RegionSalesRow[]> {
+    const rows = await this.repo
+      .createQueryBuilder('order')
+      .innerJoin('order.customer', 'customer')
+      .select('customer.state', 'state')
+      .addSelect('SUM(order.totalPrice)', 'revenue')
+      .where('order.status IN (:...statuses)', { statuses })
+      .andWhere('order.createdAt BETWEEN :from AND :to', { from, to })
+      .groupBy('customer.state')
+      .orderBy('revenue', 'DESC')
+      .getRawMany<{ state: string; revenue: string | null }>();
+
+    return rows.map((r) => ({
+      state: r.state,
+      revenue: Number(r.revenue) || 0,
+    }));
+  }
+
+  async getLtvByCustomer(statuses: OrderStatus[]): Promise<LtvByCustomerRow[]> {
+    const rows = await this.repo
+      .createQueryBuilder('order')
+      .select('order.customerId', 'customerId')
+      .addSelect('SUM(order.totalPrice)', 'ltv')
+      .where('order.status IN (:...statuses)', { statuses })
+      .groupBy('order.customerId')
+      .getRawMany<{ customerId: string; ltv: string | null }>();
+
+    return rows.map((r) => ({
+      customerId: r.customerId,
+      ltv: Number(r.ltv) || 0,
+    }));
   }
 }

@@ -66,4 +66,8 @@ export class CategoriesService {
     const detached = await this.products.detachByCategory(id);
     return { detached };
   }
+
+  countAll(): Promise<number> {
+    return this.categories.count();
+  }
 }

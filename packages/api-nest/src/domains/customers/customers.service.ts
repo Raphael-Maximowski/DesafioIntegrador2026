@@ -29,6 +29,10 @@ export class CustomersService {
     return BRAZILIAN_STATES;
   }
 
+  countAll(): Promise<number> {
+    return this.customers.count();
+  }
+
   async getById(id: string): Promise<Customer> {
     const customer = await this.customers.findById(id);
     if (!customer) throw new NotFoundException('Customer not found');

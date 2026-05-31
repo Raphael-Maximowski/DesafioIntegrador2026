@@ -11,6 +11,12 @@ import {
 } from 'typeorm';
 import { Product } from './entities/product.entity';
 
+export interface InventoryStats {
+  totalStock: number;
+  lowStockCount: number;
+  totalStockValue: number;
+}
+
 export interface ProductFilters {
   name?: string;
   priceMin?: number;
@@ -63,6 +69,32 @@ export class ProductsRepository {
 
   countByCategory(categoryId: string): Promise<number> {
     return this.repo.count({ where: { categoryId } });
+  }
+
+  async getInventoryStats(lowStockThreshold: number): Promise<InventoryStats> {
+    const raw = await this.repo
+      .createQueryBuilder('product')
+      .select('COALESCE(SUM(product.stock), 0)', 'totalStock')
+      .addSelect(
+        'SUM(CASE WHEN product.stock < :threshold THEN 1 ELSE 0 END)',
+        'lowStockCount',
+      )
+      .addSelect(
+        'COALESCE(SUM(product.price * product.stock), 0)',
+        'totalStockValue',
+      )
+      .setParameters({ threshold: lowStockThreshold })
+      .getRawOne<{
+        totalStock: string | null;
+        lowStockCount: string | null;
+        totalStockValue: string | null;
+      }>();
+
+    return {
+      totalStock: Number(raw?.totalStock) || 0,
+      lowStockCount: Number(raw?.lowStockCount) || 0,
+      totalStockValue: Number(raw?.totalStockValue) || 0,
+    };
   }
 
   async detachByCategory(categoryId: string): Promise<number> {
