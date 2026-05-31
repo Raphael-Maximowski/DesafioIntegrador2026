@@ -1,4 +1,6 @@
+import { join } from 'path';
 import type { MailerOptions } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 
 export const mailerConfig = (): MailerOptions => ({
   transport: {
@@ -8,5 +10,10 @@ export const mailerConfig = (): MailerOptions => ({
   },
   defaults: {
     from: process.env.MAIL_FROM ?? 'no-reply@desafio.local',
+  },
+  template: {
+    dir: join(__dirname, 'templates'),
+    adapter: new HandlebarsAdapter(),
+    options: { strict: true },
   },
 });

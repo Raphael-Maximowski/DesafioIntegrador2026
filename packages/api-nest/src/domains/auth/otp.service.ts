@@ -17,6 +17,10 @@ export class OtpService {
 
   constructor(@Inject(REDIS) private readonly redis: Redis) {}
 
+  get ttlSeconds(): number {
+    return this.ttl;
+  }
+
   private codeKey(email: string) {
     return `otp:${email}`;
   }

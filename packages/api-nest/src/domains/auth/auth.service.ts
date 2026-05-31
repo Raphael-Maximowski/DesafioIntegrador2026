@@ -24,12 +24,14 @@ export class AuthService {
   async requestOtp(email: string): Promise<{ detail: string }> {
     await this.users.getByEmail(email);
     const code = await this.otp.issue(email);
+    const ttlMinutes = Math.ceil(this.otp.ttlSeconds / 60);
 
     await this.mailer.sendMail({
       to: email,
       subject: 'Your login code',
-      text: `Your login code is ${code}. It expires in a few minutes.`,
-      html: `<p>Your login code is <strong>${code}</strong>.</p><p>It expires in a few minutes.</p>`,
+      template: 'otp',
+      context: { code, ttlMinutes },
+      text: `Your login code is ${code}. It expires in ${ttlMinutes} minutes.`,
     });
 
     return { detail: 'OTP sent' };

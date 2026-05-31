@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Your login code</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f1f5f9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#f1f5f9;">
+      Your login code is {{code}} — it expires in {{ttlMinutes}} minutes.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(15,23,42,0.08);">
+
+            <tr>
+              <td style="background-color:#4f46e5; padding:24px 32px;">
+                <span style="font-size:18px; font-weight:700; letter-spacing:0.5px; color:#ffffff;">Desafio Integrador</span>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:32px;">
+                <h1 style="margin:0 0 12px; font-size:20px; font-weight:600; color:#0f172a;">Your login code</h1>
+                <p style="margin:0 0 24px; font-size:14px; line-height:22px; color:#475569;">
+                  Use the code below to finish signing in. Do not share it with anyone.
+                </p>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                  <tr>
+                    <td align="center" style="padding:20px; background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+                      <span style="font-size:34px; font-weight:700; letter-spacing:10px; color:#4f46e5; font-family:'Courier New',Courier,monospace;">{{code}}</span>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0; font-size:13px; line-height:20px; color:#64748b;">
+                  This code expires in <strong style="color:#0f172a;">{{ttlMinutes}} minutes</strong>.
+                  If you didn't request it, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 32px; border-top:1px solid #e2e8f0;">
+                <p style="margin:0; font-size:12px; line-height:18px; color:#94a3b8;">
+                  This is an automated message — please don't reply.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
