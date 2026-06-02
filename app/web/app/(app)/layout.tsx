@@ -1,15 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Users, LayoutDashboard, LogOut, ChevronRight, Package, ShoppingCart } from "lucide-react";
+import {
+  Users, LayoutDashboard, LogOut,
+  Package, ShoppingCart, PanelLeftClose, PanelLeftOpen,
+} from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useAuthStore } from "@/store/authStore";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/clientes",  label: "Clientes",   icon: Users },
-  { href: "/produtos",  label: "Produtos",   icon: Package },
-  { href: "/pedidos",   label: "Pedidos",    icon: ShoppingCart },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/clientes",  label: "Clientes",  icon: Users },
+  { href: "/produtos",  label: "Produtos",  icon: Package },
+  { href: "/pedidos",   label: "Pedidos",   icon: ShoppingCart },
 ];
 
 function getInitials(name: string) {
@@ -31,7 +35,7 @@ function avatarColor(name: string) {
   return colors[idx];
 }
 
-function Sidebar() {
+function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle(): void }) {
   const pathname = usePathname();
   const router   = useRouter();
   const { logout, user } = useAuthStore();
@@ -48,128 +52,141 @@ function Sidebar() {
 
   return (
     <aside
-      className="flex flex-col shrink-0"
+      className="flex flex-col shrink-0 overflow-hidden"
       style={{
-        width: "232px",
+        width: collapsed ? "64px" : "232px",
         background: "#fff",
         borderRight: "1px solid #EEF2F7",
         boxShadow: "1px 0 0 #EEF2F7",
+        transition: "width 0.22s cubic-bezier(0.4,0,0.2,1)",
       }}
     >
-      {/* ── Logo ── */}
+      {/* ── Logo + toggle ── */}
       <div
-        className="flex items-center gap-2.5 px-5 py-4"
-        style={{ borderBottom: "1px solid #EEF2F7", height: "60px" }}
+        className="flex items-center px-3 py-4"
+        style={{
+          borderBottom: "1px solid #EEF2F7",
+          height: "60px",
+          justifyContent: collapsed ? "center" : "space-between",
+          gap: "8px",
+        }}
       >
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: "linear-gradient(135deg, #1D4ED8, #4F46E5)", boxShadow: "0 2px 8px rgba(29,78,216,0.35)" }}
+        {/* Toggle button */}
+        <button
+          onClick={onToggle}
+          title={collapsed ? "Expandir menu" : "Recolher menu"}
+          className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors"
+          style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#F1F5F9"; e.currentTarget.style.color = "#374151"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#94A3B8"; }}
         >
-          <BarChart3 size={15} className="text-white" />
-        </div>
-        <span
-          className="font-bold text-sm tracking-tight"
-          style={{ color: "#0F172A" }}
-        >
-          DataNexus
-        </span>
+          {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+        </button>
       </div>
 
       {/* ── Nav ── */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        <p
-          className="px-3 mb-2 text-xs font-semibold tracking-wider uppercase"
-          style={{ color: "#CBD5E1" }}
-        >
-          Menu
-        </p>
+      <nav className="flex-1 py-4 space-y-0.5" style={{ padding: collapsed ? "16px 8px" : "16px 12px" }}>
+        {!collapsed && (
+          <p className="px-3 mb-2 text-xs font-semibold tracking-wider uppercase" style={{ color: "#CBD5E1" }}>
+            Menu
+          </p>
+        )}
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <a
               key={href}
               href={href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group"
+              title={collapsed ? label : undefined}
+              className="flex items-center rounded-xl text-sm font-medium transition-all"
               style={{
+                gap: collapsed ? 0 : "12px",
+                padding: collapsed ? "10px" : "10px 12px",
+                justifyContent: collapsed ? "center" : "flex-start",
                 background: active ? "#EFF6FF" : "transparent",
                 color: active ? "#1D4ED8" : "#64748B",
                 textDecoration: "none",
               }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.background = "#F8FAFC"; }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
             >
-              <Icon
-                size={16}
-                style={{ color: active ? "#1D4ED8" : "#94A3B8", flexShrink: 0 }}
-              />
-              <span className="flex-1">{label}</span>
-              {active && (
-                <ChevronRight size={13} style={{ color: "#93C5FD" }} />
-              )}
+              <Icon size={16} style={{ color: active ? "#1D4ED8" : "#94A3B8", flexShrink: 0 }} />
+              {!collapsed && <span className="flex-1 whitespace-nowrap">{label}</span>}
             </a>
           );
         })}
       </nav>
 
-      {/* ── User profile + logout ── */}
+      {/* ── User + logout ── */}
       <div
-        className="px-3 py-4"
-        style={{ borderTop: "1px solid #EEF2F7" }}
+        className="py-4"
+        style={{ borderTop: "1px solid #EEF2F7", padding: collapsed ? "16px 8px" : "16px 12px" }}
       >
-        {/* User card */}
-        <div
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1"
-          style={{ background: "#F8FAFC" }}
-        >
-          {/* Avatar */}
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ background: av.bg, color: av.text }}
-          >
-            {displayName ? getInitials(displayName) : "?"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-xs font-semibold truncate"
-              style={{ color: "#0F172A" }}
+        {collapsed ? (
+          /* Avatar only when collapsed */
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: av.bg, color: av.text }}
+              title={displayName || "Usuário"}
             >
-              {displayName || "Usuário"}
-            </p>
-            <p
-              className="text-xs truncate"
-              style={{ color: "#94A3B8" }}
+              {displayName ? getInitials(displayName) : "?"}
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#EF4444" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#FFF1F2")}
+              onMouseLeave={e => (e.currentTarget.style.background = "none")}
             >
-              {user?.email ?? ""}
-            </p>
+              <LogOut size={14} />
+            </button>
           </div>
-        </div>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-          style={{
-            color: "#EF4444",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = "#FFF1F2")}
-          onMouseLeave={e => (e.currentTarget.style.background = "none")}
-        >
-          <LogOut size={14} />
-          Sair
-        </button>
+        ) : (
+          /* Full user card when expanded */
+          <>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1" style={{ background: "#F8FAFC" }}>
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                style={{ background: av.bg, color: av.text }}
+              >
+                {displayName ? getInitials(displayName) : "?"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate" style={{ color: "#0F172A" }}>
+                  {displayName || "Usuário"}
+                </p>
+                <p className="text-xs truncate" style={{ color: "#94A3B8" }}>
+                  {user?.email ?? ""}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium"
+              style={{ color: "#EF4444", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#FFF1F2")}
+              onMouseLeave={e => (e.currentTarget.style.background = "none")}
+            >
+              <LogOut size={14} />
+              Sair
+            </button>
+          </>
+        )}
       </div>
     </aside>
   );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <AuthGuard>
       <div className="flex h-screen overflow-hidden" style={{ background: "#F8FAFC" }}>
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+        <main className="flex-1 overflow-y-auto min-w-0">
           {children}
         </main>
       </div>
