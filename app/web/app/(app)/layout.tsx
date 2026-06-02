@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Users, LayoutDashboard, LogOut, ChevronRight, Package } from "lucide-react";
+import { BarChart3, Users, LayoutDashboard, LogOut, ChevronRight, Package, ShoppingCart } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useAuthStore } from "@/store/authStore";
 
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard",  icon: LayoutDashboard },
   { href: "/clientes",  label: "Clientes",   icon: Users },
   { href: "/produtos",  label: "Produtos",   icon: Package },
+  { href: "/pedidos",   label: "Pedidos",    icon: ShoppingCart },
 ];
 
 function getInitials(name: string) {
