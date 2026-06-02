@@ -3,6 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* auth design tokens */
+  --auth-paper: #F7F5F0;
+  --auth-ink: #1A1814;
+  --auth-muted: #8A8880;
+  --auth-rule: #D8D5CC;
+  --auth-accent: #C8251A;
+  --auth-dark: #0F0E0A;
+  --auth-dark-muted: #5A5A52;
 }
 
 @theme inline {
@@ -12,15 +20,158 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* SaaS input — focus ring via CSS (avoids react-hook-form onBlur conflict) */
+.saas-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #FFFFFF;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  font-family: inherit;
+}
+
+.saas-input:focus {
+  border-color: #1D4ED8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.saas-input.error {
+  border-color: #EF4444;
+}
+
+.saas-input.has-icon-left {
+  padding-left: 40px;
+}
+
+.saas-input.has-icon-right {
+  padding-right: 44px;
+}
+
+/* Auth page animations */
+@keyframes auth-reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes auth-brand {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scanline {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  50%  { transform: scaleX(1); transform-origin: left; }
+  50.001% { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+.auth-brand-anim {
+  animation: auth-brand 0.6s ease-out both;
+}
+
+.auth-form-anim {
+  animation: auth-reveal 0.5s ease-out 0.1s both;
+}
+
+/* Input underline style */
+.auth-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--auth-rule);
+  border-radius: 0;
+  outline: none;
+  padding: 6px 0 8px;
+  width: 100%;
+  color: var(--auth-ink);
+  font-family: var(--font-courier, monospace);
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  transition: border-color 0.2s ease;
+}
+
+.auth-input::placeholder {
+  color: var(--auth-rule);
+}
+
+.auth-input:focus {
+  border-bottom-color: var(--auth-ink);
+}
+
+.auth-input.error {
+  border-bottom-color: var(--auth-accent);
+}
+
+/* OTP input special */
+.auth-input-otp {
+  text-align: center;
+  letter-spacing: 0.4em;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* Button scan effect */
+.auth-btn {
+  position: relative;
+  overflow: hidden;
+  background: var(--auth-ink);
+  color: var(--auth-paper);
+  border: none;
+  width: 100%;
+  padding: 13px 20px;
+  font-family: var(--font-barlow, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: var(--auth-accent);
+}
+
+.auth-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.auth-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--auth-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.auth-btn:hover:not(:disabled)::after {
+  animation: scanline 0.4s ease-out;
+}
+
+/* Corner marks decoration */
+.corner-mark::before,
+.corner-mark::after {
+  content: '+';
+  position: absolute;
+  font-family: monospace;
+  font-size: 10px;
+  color: var(--auth-rule);
+  line-height: 1;
+}
+
+.corner-mark::before { top: 8px; left: 10px; }
+.corner-mark::after  { top: 8px; right: 10px; }
