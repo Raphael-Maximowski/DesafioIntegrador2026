@@ -121,9 +121,10 @@ export default function DashboardPage() {
   const [loadingOv,  setLoadingOv]  = useState(true);
   const [loadingPr,  setLoadingPr]  = useState(true);
   const [error,      setError]      = useState("");
-  const [lowStockOpen,   setLowStockOpen]   = useState(false);
-  const [lowStockItems,  setLowStockItems]  = useState<Product[]>([]);
-  const [loadingLowStock,setLoadingLowStock]= useState(false);
+  const [lowStockOpen,    setLowStockOpen]    = useState(false);
+  const [lowStockItems,   setLowStockItems]   = useState<Product[]>([]);
+  const [loadingLowStock, setLoadingLowStock] = useState(false);
+  const [lowStockError,   setLowStockError]   = useState("");
   const pickerRef = useRef<HTMLDivElement>(null);
 
   /* Close picker on outside click */
@@ -163,12 +164,13 @@ export default function DashboardPage() {
     setLowStockOpen(true);
     if (lowStockItems.length > 0) return;
     setLoadingLowStock(true);
+    setLowStockError("");
     try {
       const threshold = products?.lowStockThreshold ?? 30;
-      const result = await listProducts({ stockMax: threshold - 1, limit: 50 });
+      const result = await listProducts({ stockMin: 0, stockMax: threshold - 1, limit: 50 });
       setLowStockItems(result.data);
     } catch {
-      /* silently fail — list stays empty */
+      setLowStockError("Não foi possível carregar os produtos.");
     } finally {
       setLoadingLowStock(false);
     }
@@ -262,8 +264,60 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <KpiCard label="Valor em estoque"     value={fmtCurrency(products?.totalStockValue ?? 0)}    icon={Package}       iconBg="#ECFEFF" iconColor="#0E7490" loading={loadingPr} />
         <KpiCard label="Unidades em estoque"  value={fmtNumber(products?.totalStock ?? 0)}            icon={Package}       iconBg="#F8FAFC" iconColor="#64748B" loading={loadingPr} />
-        <KpiCard label="Itens estoque baixo"  value={fmtNumber(products?.lowStockCount ?? 0)}         icon={AlertTriangle} iconBg="#FEF2F2" iconColor="#DC2626" loading={loadingPr}
-          sub={`Limiar: ${products?.lowStockThreshold ?? 30} un.`} />
+        {/* Low stock card — expandable */}
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: `1px solid ${lowStockOpen ? "#FECACA" : "#E8EEF5"}`, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", transition: "border-color 0.15s" }}>
+          <button type="button" onClick={toggleLowStock}
+            className="w-full flex items-start gap-4 p-5 text-left"
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#FFFAFA")}
+            onMouseLeave={e => (e.currentTarget.style.background = "none")}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FEF2F2" }}>
+              <AlertTriangle size={18} style={{ color: "#DC2626" }} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium mb-1" style={{ color: "#94A3B8" }}>Itens estoque baixo</p>
+              {loadingPr
+                ? <div className="skeleton-shimmer h-6 w-12 rounded" />
+                : <p className="text-xl font-bold" style={{ color: "#DC2626" }}>{fmtNumber(products?.lowStockCount ?? 0)}</p>
+              }
+              <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
+                {lowStockOpen ? "Clique para fechar" : `Menos de ${products?.lowStockThreshold ?? 30} · Ver`}
+              </p>
+            </div>
+          </button>
+
+          {lowStockOpen && (
+            <div style={{ borderTop: "1px solid #FEF2F2", maxHeight: "220px", overflowY: "auto" }}>
+              {loadingLowStock ? (
+                <div className="p-4 space-y-2">
+                  {[...Array(3)].map((_, i) => <div key={i} className="skeleton-shimmer h-8 rounded-lg" />)}
+                </div>
+              ) : lowStockError ? (
+                <p className="text-xs text-center py-4 flex items-center justify-center gap-1" style={{ color: "#DC2626" }}>
+                  <AlertTriangle size={12} />{lowStockError}
+                </p>
+              ) : lowStockItems.length === 0 ? (
+                <p className="text-xs text-center py-4" style={{ color: "#94A3B8" }}>Nenhum produto abaixo do limiar</p>
+              ) : (
+                <div>
+                  {lowStockItems.map((p, i) => (
+                    <div key={p.id} className="flex items-center justify-between px-4 py-2.5"
+                      style={{ borderBottom: i < lowStockItems.length - 1 ? "1px solid #FFF5F5" : "none" }}>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate" style={{ color: "#0F172A" }}>{p.name}</p>
+                        <p className="text-xs" style={{ color: "#94A3B8" }}>{p.category?.name ?? "Sem categoria"}</p>
+                      </div>
+                      <span className="text-xs font-bold ml-3 shrink-0 px-2 py-0.5 rounded-full"
+                        style={{ background: p.stock === 0 ? "#FEF2F2" : "#FFFBEB", color: p.stock === 0 ? "#DC2626" : "#B45309" }}>
+                        {p.stock} un.
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <KpiCard label="LTV mediano"          value={fmtCurrencyFull(clients?.medianLtv ?? 0)}        icon={Wallet}        iconBg="#FEFCE8" iconColor="#A16207" loading={loadingPr}
           sub={`${fmtNumber(clients?.totalClients ?? 0)} clientes`} />
       </div>
