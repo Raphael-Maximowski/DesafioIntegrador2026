@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 
@@ -8,22 +8,30 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, setTokens, logout } = useAuthStore();
 
+  // Wait for Zustand persist to rehydrate from localStorage before checking auth.
+  // On first render, isAuthenticated is always false (initial state) even if the
+  // user has a valid token — the store hasn't read localStorage yet.
+  const [hydrated, setHydrated] = useState(false);
+
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [hydrated, isAuthenticated, router]);
 
-  // Listen for token refresh events from the axios interceptor
+  // Listen for token refresh / session expiry events from axios interceptor
   useEffect(() => {
     function onRefreshed(e: Event) {
-      const tokens = (e as CustomEvent).detail;
-      setTokens(tokens);
+      setTokens((e as CustomEvent).detail);
     }
     function onExpired() {
       logout();
     }
-
     window.addEventListener("auth:tokens-refreshed", onRefreshed);
     window.addEventListener("auth:session-expired", onExpired);
     return () => {
@@ -32,7 +40,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     };
   }, [setTokens, logout]);
 
-  if (!isAuthenticated) return null;
+  // Still hydrating or not authenticated — render nothing (avoid flash)
+  if (!hydrated || !isAuthenticated) return null;
 
   return <>{children}</>;
 }

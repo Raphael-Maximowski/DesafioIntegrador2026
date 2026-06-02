@@ -34,11 +34,17 @@ function Field({
         {label}
       </label>
       {children}
-      {error && (
-        <p className="text-xs mt-1.5 font-medium" style={{ color: "#DC2626" }}>
-          {error}
-        </p>
-      )}
+      {/* Always rendered to prevent layout shift between grid columns */}
+      <p
+        className="text-xs mt-1.5 font-medium"
+        style={{
+          color: error ? "#DC2626" : "transparent",
+          minHeight: "16px",
+          lineHeight: "16px",
+        }}
+      >
+        {error ?? " "}
+      </p>
     </div>
   );
 }

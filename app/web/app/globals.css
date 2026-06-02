@@ -57,6 +57,27 @@ body {
   padding-right: 44px;
 }
 
+/* Table row entrance animation */
+@keyframes row-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.row-enter {
+  animation: row-enter 0.25s ease-out both;
+}
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E8EDF5 50%, #F1F5F9 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+}
+
 /* Auth page animations */
 @keyframes auth-reveal {
   from { opacity: 0; transform: translateY(12px); }
