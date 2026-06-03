@@ -39,6 +39,8 @@ export default function CategoryPicker({ categories, value, onChange, onCategory
   async function handleCreate() {
     const name = newName.trim();
     if (!name) { setCreateError("Nome obrigatório."); return; }
+    if (name.length < 2) { setCreateError("Nome deve ter pelo menos 2 caracteres."); return; }
+    if (name.length > 50) { setCreateError("Nome deve ter no máximo 50 caracteres."); return; }
     const duplicate = categories.some(c => c.name.toLowerCase() === name.toLowerCase());
     if (duplicate) { setCreateError("Já existe uma categoria com esse nome."); return; }
     setSaving(true);
@@ -195,6 +197,7 @@ export default function CategoryPicker({ categories, value, onChange, onCategory
             type="text"
             placeholder="Nome da categoria"
             value={newName}
+            maxLength={50}
             onChange={e => setNewName(e.target.value)}
             autoFocus
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleCreate(); } }}

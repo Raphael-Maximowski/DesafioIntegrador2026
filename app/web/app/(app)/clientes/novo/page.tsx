@@ -10,7 +10,7 @@ import { createCustomer, listStates } from "@/services/customers";
 import type { CustomerState } from "@/types/customer";
 
 const schema = z.object({
-  name:  z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  name:  z.string().min(3, "Nome deve ter pelo menos 3 caracteres").max(100, "Nome deve ter no máximo 100 caracteres"),
   email: z.string().min(1, "E-mail obrigatório").email({ message: "Formato de e-mail inválido" }),
   city:  z.string().min(2, "Cidade deve ter pelo menos 2 caracteres").max(100, "Nome da cidade muito longo"),
   state: z.string().min(1, "Estado obrigatório"),
@@ -87,7 +87,7 @@ export default function NovoClientePage() {
   const city  = watch("city");
   const state = watch("state");
 
-  const nameValid  = !errors.name  && !!name  && name.length  >= 2;
+  const nameValid  = !errors.name  && !!name  && name.length  >= 3;
   const emailValid = !errors.email && !!email;
   const cityValid  = !errors.city  && !!city  && city.length  >= 2;
   const stateValid = !errors.state && !!state;

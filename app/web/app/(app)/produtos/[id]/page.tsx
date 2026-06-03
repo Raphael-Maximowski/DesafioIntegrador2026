@@ -8,12 +8,21 @@ import { z } from "zod";
 import { Package, Box, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { getProduct, updateProduct, listCategories } from "@/services/products";
 import CategoryPicker from "@/components/products/CategoryPicker";
+import { sanitizeDecimal, sanitizeInteger, onDecimalKeyDown, onNumericKeyDown } from "@/lib/formUtils";
 import type { Product, Category } from "@/types/product";
 
 const schema = z.object({
-  name:       z.string().min(1, "Nome obrigatório"),
-  price:      z.string().min(1, "Preço obrigatório").refine(v => !isNaN(parseFloat(v)) && parseFloat(v) >= 0, "Preço deve ser ≥ 0"),
-  stock:      z.string().min(1, "Estoque obrigatório").refine(v => /^\d+$/.test(v.trim()) && parseInt(v) >= 0, "Deve ser número inteiro ≥ 0"),
+  name: z.string()
+    .min(3, "Nome deve ter pelo menos 3 caracteres")
+    .max(100, "Nome deve ter no máximo 100 caracteres"),
+  price: z.string()
+    .min(1, "Preço obrigatório")
+    .refine(v => /^\d+(\.\d{1,2})?$/.test(v.trim()) && parseFloat(v) > 0, "Preço deve ser maior que 0")
+    .refine(v => parseFloat(v) < 999999, "Preço deve ser menor que 999.999"),
+  stock: z.string()
+    .min(1, "Estoque obrigatório")
+    .refine(v => /^\d+$/.test(v.trim()), "Deve ser número inteiro")
+    .refine(v => parseInt(v, 10) >= 0 && parseInt(v, 10) <= 99999, "Estoque deve ser entre 0 e 99.999"),
   categoryId: z.string().optional(),
 });
 
@@ -62,13 +71,13 @@ export default function EditarProdutoPage() {
   const params  = useParams<{ id: string }>();
   const id      = params.id;
 
-  const [product,  setProduct]  = useState<Product | null>(null);
+  const [product,    setProduct]    = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [fetching, setFetching] = useState(true);
-  const [fetchErr, setFetchErr] = useState("");
-  const [apiError, setApiError] = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [saved,    setSaved]    = useState(false);
+  const [fetching,   setFetching]   = useState(true);
+  const [fetchErr,   setFetchErr]   = useState("");
+  const [apiError,   setApiError]   = useState("");
+  const [loading,    setLoading]    = useState(false);
+  const [saved,      setSaved]      = useState(false);
 
   const { register, handleSubmit, watch, reset, control, formState: { errors, isDirty } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -79,9 +88,12 @@ export default function EditarProdutoPage() {
   const price = watch("price");
   const stock = watch("stock");
 
-  const nameValid  = !errors.name  && !!name;
+  const nameValid  = !errors.name  && !!name  && name.length >= 3;
   const priceValid = !errors.price && !!price;
   const stockValid = !errors.stock && !!stock;
+
+  const priceReg = register("price");
+  const stockReg = register("stock");
 
   useEffect(() => {
     Promise.all([getProduct(id), listCategories({ limit: 100 })])
@@ -169,6 +181,7 @@ export default function EditarProdutoPage() {
             icon={Package}
             type="text"
             placeholder="Nome do produto"
+            maxLength={100}
             hasError={!!errors.name}
             isValid={nameValid}
             {...register("name")}
@@ -179,26 +192,34 @@ export default function EditarProdutoPage() {
           <Field label="Preço (R$)" error={errors.price?.message}>
             <InputIcon
               icon={Package}
-              type="text" inputMode="numeric"
-              step="0.01"
-              min="0"
+              type="text"
+              inputMode="decimal"
               placeholder="0,00"
               hasError={!!errors.price}
               isValid={priceValid}
-              {...register("price")}
+              {...priceReg}
+              onChange={e => {
+                e.target.value = sanitizeDecimal(e.target.value, 6, 2);
+                priceReg.onChange(e);
+              }}
+              onKeyDown={onDecimalKeyDown}
             />
           </Field>
 
           <Field label="Estoque (unidades)" error={errors.stock?.message}>
             <InputIcon
               icon={Box}
-              type="text" inputMode="numeric"
-              step="1"
-              min="0"
+              type="text"
+              inputMode="numeric"
               placeholder="0"
               hasError={!!errors.stock}
               isValid={stockValid}
-              {...register("stock")}
+              {...stockReg}
+              onChange={e => {
+                e.target.value = sanitizeInteger(e.target.value, 5);
+                stockReg.onChange(e);
+              }}
+              onKeyDown={onNumericKeyDown}
             />
           </Field>
         </div>
