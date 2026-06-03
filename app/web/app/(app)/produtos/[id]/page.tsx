@@ -179,7 +179,7 @@ export default function EditarProdutoPage() {
           <Field label="Preço (R$)" error={errors.price?.message}>
             <InputIcon
               icon={Package}
-              type="number"
+              type="text" inputMode="numeric"
               step="0.01"
               min="0"
               placeholder="0,00"
@@ -192,7 +192,7 @@ export default function EditarProdutoPage() {
           <Field label="Estoque (unidades)" error={errors.stock?.message}>
             <InputIcon
               icon={Box}
-              type="number"
+              type="text" inputMode="numeric"
               step="1"
               min="0"
               placeholder="0"

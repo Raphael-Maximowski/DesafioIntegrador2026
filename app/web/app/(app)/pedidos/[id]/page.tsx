@@ -251,7 +251,7 @@ export default function GerenciarPedidoPage() {
                       <div className="flex items-center gap-1 px-2 rounded-lg" style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", height: "34px" }}>
                         <span className="text-xs" style={{ color: "#94A3B8" }}>Qtd:</span>
                         <input
-                          type="number" min="1" value={itemQtys[item.id] ?? item.quantity}
+                          type="text" inputMode="numeric" min="1" value={itemQtys[item.id] ?? item.quantity}
                           onChange={e => setItemQtys(p => ({ ...p, [item.id]: e.target.value }))}
                           onKeyDown={e => { if (e.key === "Enter") handleItemQty(item.id); }}
                           className="w-12 text-sm outline-none text-center"

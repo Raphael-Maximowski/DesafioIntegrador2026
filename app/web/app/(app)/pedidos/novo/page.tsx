@@ -176,7 +176,7 @@ export default function NovoPedidoPage() {
               <div className="flex items-center gap-2 px-3 rounded-xl" style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", height: "38px" }}>
                 <span className="text-xs font-medium" style={{ color: "#64748B" }}>Qtd:</span>
                 <input
-                  type="number" min="1" value={qty}
+                  type="text" inputMode="numeric" min="1" value={qty}
                   onChange={e => setQty(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); } }}
                   className="w-16 text-sm outline-none text-center"
@@ -226,7 +226,7 @@ export default function NovoPedidoPage() {
                     </td>
                     <td className="px-4 py-3">
                       <input
-                        type="number"
+                        type="text" inputMode="numeric"
                         min="1"
                         max={item.product.stock}
                         value={item.quantity}
