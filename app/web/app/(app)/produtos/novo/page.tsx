@@ -8,12 +8,21 @@ import { z } from "zod";
 import { Package, DollarSign, Box, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { createProduct, listCategories } from "@/services/products";
 import CategoryPicker from "@/components/products/CategoryPicker";
+import { sanitizeDecimal, sanitizeInteger, onDecimalKeyDown, onNumericKeyDown } from "@/lib/formUtils";
 import type { Category } from "@/types/product";
 
 const schema = z.object({
-  name:       z.string().min(1, "Nome obrigatório"),
-  price:      z.string().min(1, "Preço obrigatório").refine(v => !isNaN(parseFloat(v)) && parseFloat(v) >= 0, "Preço deve ser ≥ 0"),
-  stock:      z.string().min(1, "Estoque obrigatório").refine(v => /^\d+$/.test(v.trim()) && parseInt(v) >= 0, "Deve ser número inteiro ≥ 0"),
+  name: z.string()
+    .min(3, "Nome deve ter pelo menos 3 caracteres")
+    .max(100, "Nome deve ter no máximo 100 caracteres"),
+  price: z.string()
+    .min(1, "Preço obrigatório")
+    .refine(v => /^\d+(\.\d{1,2})?$/.test(v.trim()) && parseFloat(v) > 0, "Preço deve ser maior que 0")
+    .refine(v => parseFloat(v) < 999999, "Preço deve ser menor que 999.999"),
+  stock: z.string()
+    .min(1, "Estoque obrigatório")
+    .refine(v => /^\d+$/.test(v.trim()), "Deve ser número inteiro")
+    .refine(v => parseInt(v, 10) >= 0 && parseInt(v, 10) <= 99999, "Estoque deve ser entre 0 e 99.999"),
   categoryId: z.string().optional(),
 });
 
@@ -72,9 +81,12 @@ export default function NovoProdutoPage() {
   const price = watch("price");
   const stock = watch("stock");
 
-  const nameValid  = !errors.name  && !!name;
+  const nameValid  = !errors.name  && !!name  && name.length >= 3;
   const priceValid = !errors.price && !!price;
   const stockValid = !errors.stock && !!stock;
+
+  const priceReg = register("price");
+  const stockReg = register("stock");
 
   useEffect(() => {
     listCategories({ limit: 100 }).then(r => setCategories(r.data)).catch(() => {});
@@ -123,6 +135,7 @@ export default function NovoProdutoPage() {
             icon={Package}
             type="text"
             placeholder="Nome do produto"
+            maxLength={100}
             hasError={!!errors.name}
             isValid={nameValid}
             {...register("name")}
@@ -133,26 +146,34 @@ export default function NovoProdutoPage() {
           <Field label="Preço (R$)" error={errors.price?.message}>
             <InputIcon
               icon={DollarSign}
-              type="text" inputMode="numeric"
-              step="0.01"
-              min="0"
+              type="text"
+              inputMode="decimal"
               placeholder="0,00"
               hasError={!!errors.price}
               isValid={priceValid}
-              {...register("price")}
+              {...priceReg}
+              onChange={e => {
+                e.target.value = sanitizeDecimal(e.target.value, 6, 2);
+                priceReg.onChange(e);
+              }}
+              onKeyDown={onDecimalKeyDown}
             />
           </Field>
 
           <Field label="Estoque (unidades)" error={errors.stock?.message}>
             <InputIcon
               icon={Box}
-              type="text" inputMode="numeric"
-              step="1"
-              min="0"
+              type="text"
+              inputMode="numeric"
               placeholder="0"
               hasError={!!errors.stock}
               isValid={stockValid}
-              {...register("stock")}
+              {...stockReg}
+              onChange={e => {
+                e.target.value = sanitizeInteger(e.target.value, 5);
+                stockReg.onChange(e);
+              }}
+              onKeyDown={onNumericKeyDown}
             />
           </Field>
         </div>

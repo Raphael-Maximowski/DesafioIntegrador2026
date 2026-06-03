@@ -7,6 +7,7 @@ import SearchCombobox from "@/components/ui/SearchCombobox";
 import { listCustomers } from "@/services/customers";
 import { listProducts } from "@/services/products";
 import { createOrder } from "@/services/orders";
+import { sanitizeInteger, onNumericKeyDown } from "@/lib/formUtils";
 import type { Customer } from "@/types/customer";
 import type { Product } from "@/types/product";
 
@@ -40,8 +41,8 @@ export default function NovoPedidoPage() {
   function addItem() {
     if (!selectedPrd) return;
     const q = parseInt(qty, 10);
-    if (!q || q < 1) { setFormError("Quantidade deve ser ≥ 1."); return; }
-    if (selectedPrd.stock < q) { setFormError(`Estoque insuficiente (${selectedPrd.stock} un. disponíveis).`); return; }
+    if (!qty || isNaN(q) || q < 1) { setFormError("Quantidade deve ser pelo menos 1."); return; }
+    if (q > selectedPrd.stock) { setFormError(`Estoque insuficiente. Disponível: ${selectedPrd.stock} unidade(s).`); return; }
     setFormError("");
     setItems(prev => {
       const existing = prev.findIndex(i => i.product.id === selectedPrd.id);
@@ -61,9 +62,11 @@ export default function NovoPedidoPage() {
   }
 
   function updateItemQty(productId: string, raw: string) {
-    const q = parseInt(raw, 10);
-    if (!raw || isNaN(q)) return;
-    const clamped = Math.max(1, Math.min(q, items.find(i => i.product.id === productId)?.product.stock ?? q));
+    const sanitized = sanitizeInteger(raw, 5);
+    if (!sanitized) return;
+    const q = parseInt(sanitized, 10);
+    if (isNaN(q) || q < 1) return;
+    const clamped = Math.min(q, items.find(i => i.product.id === productId)?.product.stock ?? q);
     setItems(prev => prev.map(i => i.product.id === productId ? { ...i, quantity: clamped } : i));
   }
 
@@ -176,9 +179,12 @@ export default function NovoPedidoPage() {
               <div className="flex items-center gap-2 px-3 rounded-xl" style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", height: "38px" }}>
                 <span className="text-xs font-medium" style={{ color: "#64748B" }}>Qtd:</span>
                 <input
-                  type="text" inputMode="numeric" min="1" value={qty}
-                  onChange={e => setQty(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addItem(); } }}
+                  type="text" inputMode="numeric" value={qty}
+                  onChange={e => setQty(sanitizeInteger(e.target.value, 5) || "1")}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") { e.preventDefault(); addItem(); return; }
+                    onNumericKeyDown(e);
+                  }}
                   className="w-16 text-sm outline-none text-center"
                   style={{ background: "transparent", border: "none", color: "#0F172A" }}
                 />
@@ -227,10 +233,9 @@ export default function NovoPedidoPage() {
                     <td className="px-4 py-3">
                       <input
                         type="text" inputMode="numeric"
-                        min="1"
-                        max={item.product.stock}
                         value={item.quantity}
                         onChange={e => updateItemQty(item.product.id, e.target.value)}
+                        onKeyDown={onNumericKeyDown}
                         className="w-14 text-sm text-center outline-none rounded-lg"
                         style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", color: "#0F172A", padding: "4px 6px" }}
                         onFocus={e => (e.currentTarget.style.borderColor = "#1D4ED8")}
