@@ -57,25 +57,13 @@ services:
     build: ./packages/api-flask
     command: gunicorn run:app -w 4 -b 0.0.0.0:8000
     environment: 
-      DATABASE_URL: postgres://app:app@postgres-flask:5432/app
+      DATABASE_URL: postgresql://app:app@postgres-flask:5432/app
       SECRET_KEY: dev-insecure-change-me
       DEBUG: "True"
     volumes:
       - ./packages/api-flask:/app
     ports:
       - "8000:8000"
-    depends_on:
-      postgres-flask:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  celery-worker:
-    build: ./packages/api-flask
-    command: celery -A config.celery worker -l info
-    environment: *django-env
-    volumes:
-      - ./packages/api-flask:/app
     depends_on:
       postgres-flask:
         condition: service_healthy
