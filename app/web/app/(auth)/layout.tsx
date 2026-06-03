@@ -1,13 +1,5 @@
 import { Inter } from "next/font/google";
-import {
-  CheckCircle2,
-  BarChart3,
-  Shield,
-  Zap,
-  TrendingUp,
-  Users,
-  ArrowUpRight,
-} from "lucide-react";
+import { BarChart3, Shield, Zap, TrendingUp } from "lucide-react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,11 +14,6 @@ const features = [
   { icon: TrendingUp,text: "Controle financeiro" },
 ];
 
-const stats = [
-  { value: "5.000+", label: "Empresas ativas" },
-  { value: "99.9%",  label: "Disponibilidade" },
-  { value: "2×",     label: "Mais produtividade" },
-];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -91,24 +78,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
 
         <div className="relative z-10 flex flex-col h-full p-10 xl:p-14">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-auto">
-            <div
-              className="flex items-center justify-center w-9 h-9 rounded-xl"
-              style={{
-                background: "linear-gradient(135deg, #3B82F6, #6366F1)",
-                boxShadow: "0 4px 14px rgba(99,102,241,0.4)",
-              }}
-            >
-              <BarChart3 size={18} className="text-white" />
-            </div>
-            <span className="font-semibold text-white text-sm tracking-wide">
-              DataNexus
-            </span>
-          </div>
-
           {/* Hero content */}
-          <div className="py-12">
+          <div className="py-12 my-auto">
             {/* Badge */}
             <div
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-6 text-xs font-medium"
@@ -164,62 +135,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               ))}
             </ul>
 
-            {/* Stats glass card */}
-            <div
-              className="rounded-2xl p-5"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                backdropFilter: "blur(12px)",
-              }}
-            >
-              <div className="grid grid-cols-3 gap-4">
-                {stats.map(({ value, label }) => (
-                  <div key={label} className="text-center">
-                    <div
-                      className="font-bold text-xl mb-0.5"
-                      style={{ color: "#F1F5F9" }}
-                    >
-                      {value}
-                    </div>
-                    <div className="text-xs" style={{ color: "#64748B" }}>
-                      {label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom testimonial */}
-          <div
-            className="rounded-xl p-4 flex items-start gap-3"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.07)",
-            }}
-          >
-            <div
-              className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold"
-              style={{ background: "linear-gradient(135deg, #3B82F6, #6366F1)", color: "#fff" }}
-            >
-              CL
-            </div>
-            <div>
-              <p className="text-xs leading-relaxed mb-1" style={{ color: "#94A3B8" }}>
-                &ldquo;O DataNexus transformou a forma como gerenciamos nossos dados.
-                Decisões 3× mais rápidas.&rdquo;
-              </p>
-              <div className="flex items-center gap-1">
-                <span className="text-xs font-medium" style={{ color: "#CBD5E1" }}>
-                  Carlos Lima
-                </span>
-                <span className="text-xs" style={{ color: "#475569" }}>
-                  · CEO, TechCorp
-                </span>
-                <ArrowUpRight size={11} style={{ color: "#475569" }} className="ml-auto" />
-              </div>
-            </div>
           </div>
         </div>
       </aside>
