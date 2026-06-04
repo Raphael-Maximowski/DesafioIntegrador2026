@@ -25,6 +25,15 @@ function initials(name: string) {
   return p.length >= 2 ? (p[0][0] + p[p.length - 1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
 }
 
+/* Título de seção interna */
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9da3b4", marginBottom: 16 }}>
+      {children}
+    </p>
+  );
+}
+
 export default function NovoPedidoPage() {
   const router = useRouter();
 
@@ -71,8 +80,7 @@ export default function NovoPedidoPage() {
   }
 
   async function handleSubmit() {
-    setFormError("");
-    setApiError("");
+    setFormError(""); setApiError("");
     if (!customer) { setFormError("Selecione um cliente."); return; }
     if (items.length === 0) { setFormError("Adicione pelo menos um item."); return; }
     setLoading(true);
@@ -91,199 +99,222 @@ export default function NovoPedidoPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-2xl">
-      <button onClick={() => router.push("/pedidos")}
-        className="flex items-center gap-1.5 text-sm mb-6"
-        style={{ color: "#64748B", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-        <ArrowLeft size={15} />Voltar para pedidos
+    <div style={{ background: "#f8f9fc", minHeight: "100%", padding: "32px 28px 48px" }}>
+
+      <button type="button" className="form-back-link" onClick={() => router.push("/pedidos")}>
+        <ArrowLeft size={15} aria-hidden="true" />
+        Voltar para pedidos
       </button>
 
-      <div className="mb-6">
-        <h1 className="text-xl font-bold" style={{ color: "#0F172A" }}>Novo pedido</h1>
-        <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>Selecione o cliente e adicione os produtos.</p>
-      </div>
+      <div className="form-card">
+        {/* Header */}
+        <div className="form-card__header">
+          <h1 className="form-card__title">Novo pedido</h1>
+          <p className="form-card__subtitle">Selecione o cliente e adicione os produtos.</p>
+        </div>
 
-      <div className="space-y-6">
-        {/* ── Seção 1: Cliente ── */}
-        <section className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid #E8EEF5" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#EFF6FF" }}>
-              <User size={14} style={{ color: "#1D4ED8" }} />
-            </div>
-            <h2 className="text-sm font-semibold" style={{ color: "#0F172A" }}>Cliente</h2>
+        <div className="form-card__body" style={{ gap: 0 }}>
+
+          {/* ── Cliente ── */}
+          <div style={{ marginBottom: 24 }}>
+            <SectionTitle>Cliente <span aria-hidden="true" style={{ color: "#fa5252" }}>*</span></SectionTitle>
+            <SearchCombobox<Customer>
+              placeholder="Buscar cliente por nome..."
+              onSearch={q => listCustomers({ name: q, limit: 10 }).then(r => r.data)}
+              onSelect={setCustomer}
+              onClear={() => setCustomer(null)}
+              selected={customer}
+              getKey={c => c.id}
+              renderItem={c => (
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1d2e" }}>{c.name}</p>
+                  <p style={{ fontSize: 11, color: "#9da3b4" }}>{c.email} · {c.city}/{c.state}</p>
+                </div>
+              )}
+              renderSelected={c => (
+                <div className="flex items-center gap-3">
+                  <div
+                    style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0, background: "#dbeafe", color: "#3b5bdb" }}
+                    aria-hidden="true"
+                  >
+                    {initials(c.name)}
+                  </div>
+                  <div className="min-w-0">
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1d2e" }} className="truncate">{c.name}</p>
+                    <p style={{ fontSize: 11, color: "#5c6278" }} className="truncate">{c.email}</p>
+                  </div>
+                </div>
+              )}
+            />
           </div>
-          <SearchCombobox<Customer>
-            placeholder="Buscar cliente por nome..."
-            onSearch={q => listCustomers({ name: q, limit: 10 }).then(r => r.data)}
-            onSelect={setCustomer}
-            onClear={() => setCustomer(null)}
-            selected={customer}
-            getKey={c => c.id}
-            renderItem={c => (
+
+          {/* Separador */}
+          <div style={{ borderTop: "1px solid #f0f2f7", marginBottom: 24 }} />
+
+          {/* ── Produto ── */}
+          <div style={{ marginBottom: 24 }}>
+            <SectionTitle>Adicionar produto</SectionTitle>
+            <SearchCombobox<Product>
+              placeholder="Buscar produto por nome..."
+              onSearch={q => listProducts({ name: q, limit: 10 }).then(r => r.data)}
+              onSelect={p => { setSelectedPrd(p); setFormError(""); }}
+              onClear={() => setSelectedPrd(null)}
+              selected={selectedPrd}
+              getKey={p => p.id}
+              renderItem={p => (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1d2e" }} className="truncate">{p.name}</p>
+                    <p style={{ fontSize: 11, color: "#9da3b4" }}>{p.category?.name ?? "Sem categoria"} · {p.stock} un.</p>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1d2e", flexShrink: 0 }}>{fmtPrice(p.price)}</span>
+                </div>
+              )}
+              renderSelected={p => (
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="min-w-0">
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1d2e" }} className="truncate">{p.name}</p>
+                    <p style={{ fontSize: 11, color: "#5c6278" }}>{fmtPrice(p.price)} · {p.stock} un. em estoque</p>
+                  </div>
+                </div>
+              )}
+            />
+
+            {selectedPrd && (
+              <div className="flex items-center gap-3 mt-3">
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 14px", height: 44, background: "#f8f9fc", border: "1.5px solid #e2e6ef", borderRadius: 8 }}
+                >
+                  <label htmlFor="qty-add" style={{ fontSize: 12, fontWeight: 500, color: "#5c6278", whiteSpace: "nowrap" }}>Qtd:</label>
+                  <input
+                    id="qty-add"
+                    type="text"
+                    inputMode="numeric"
+                    value={qty}
+                    aria-label="Quantidade a adicionar"
+                    onChange={e => setQty(sanitizeInteger(e.target.value, 5) || "1")}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") { e.preventDefault(); addItem(); return; }
+                      onNumericKeyDown(e);
+                    }}
+                    style={{ width: 52, fontSize: 14, textAlign: "center", background: "transparent", border: "none", outline: "none", color: "#1a1d2e" }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addItem}
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 20px", height: 44, fontSize: 13, fontWeight: 600, color: "#fff", background: "#3b5bdb", border: "none", borderRadius: 8, cursor: "pointer" }}
+                >
+                  <Plus size={14} aria-hidden="true" />Adicionar
+                </button>
+              </div>
+            )}
+
+            {formError && (
+              <p role="alert" className="flex items-center gap-1.5 mt-2" style={{ fontSize: 12, color: "#fa5252" }}>
+                <AlertTriangle size={12} aria-hidden="true" />{formError}
+              </p>
+            )}
+          </div>
+
+          {/* ── Resumo ── */}
+          {items.length > 0 && (
+            <>
+              <div style={{ borderTop: "1px solid #f0f2f7", marginBottom: 24 }} />
               <div>
-                <p className="text-sm font-medium" style={{ color: "#0F172A" }}>{c.name}</p>
-                <p className="text-xs" style={{ color: "#94A3B8" }}>{c.email} · {c.city}/{c.state}</p>
-              </div>
-            )}
-            renderSelected={c => (
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>
-                  {initials(c.name)}
+                <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+                  <SectionTitle>Resumo do pedido</SectionTitle>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: "#5c6278", background: "#f1f3f8", padding: "2px 8px", borderRadius: 20, marginBottom: 16 }}>
+                    {items.length} {items.length === 1 ? "item" : "itens"}
+                  </span>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: "#0F172A" }}>{c.name}</p>
-                  <p className="text-xs truncate" style={{ color: "#64748B" }}>{c.email}</p>
-                </div>
-              </div>
-            )}
-          />
-        </section>
 
-        {/* ── Seção 2: Adicionar item ── */}
-        <section className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid #E8EEF5" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#F0FDF4" }}>
-              <Package size={14} style={{ color: "#15803D" }} />
-            </div>
-            <h2 className="text-sm font-semibold" style={{ color: "#0F172A" }}>Adicionar produto</h2>
-          </div>
-
-          <SearchCombobox<Product>
-            placeholder="Buscar produto por nome..."
-            onSearch={q => listProducts({ name: q, limit: 10 }).then(r => r.data)}
-            onSelect={p => { setSelectedPrd(p); setFormError(""); }}
-            onClear={() => setSelectedPrd(null)}
-            selected={selectedPrd}
-            getKey={p => p.id}
-            renderItem={p => (
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "#0F172A" }}>{p.name}</p>
-                  <p className="text-xs" style={{ color: "#94A3B8" }}>{p.category?.name ?? "Sem categoria"} · {p.stock} un. disponíveis</p>
+                <div style={{ overflowX: "auto", border: "1.5px solid #e2e6ef", borderRadius: 10, overflow: "hidden" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 460 }}>
+                    <thead>
+                      <tr style={{ background: "#f8f9fc", borderBottom: "1px solid #e2e6ef" }}>
+                        {["Produto", "Qtd", "Preço unit.", "Subtotal", ""].map(h => (
+                          <th key={h} scope="col"
+                            style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#9da3b4", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item, idx) => (
+                        <tr key={item.product.id} style={{ borderTop: idx > 0 ? "1px solid #f0f2f7" : "none" }}>
+                          <td style={{ padding: "12px 14px" }}>
+                            <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1d2e" }}>{item.product.name}</p>
+                            {item.product.category && <p style={{ fontSize: 11, color: "#9da3b4" }}>{item.product.category.name}</p>}
+                          </td>
+                          <td style={{ padding: "12px 14px" }}>
+                            <input
+                              type="text" inputMode="numeric" value={item.quantity}
+                              aria-label={`Quantidade de ${item.product.name}`}
+                              onChange={e => updateItemQty(item.product.id, e.target.value)}
+                              onKeyDown={onNumericKeyDown}
+                              style={{ width: 52, fontSize: 13, textAlign: "center", background: "#f8f9fc", border: "1.5px solid #e2e6ef", borderRadius: 6, padding: "4px 6px", color: "#1a1d2e", outline: "none" }}
+                              onFocus={e => (e.currentTarget.style.borderColor = "#3b5bdb")}
+                              onBlur={e => (e.currentTarget.style.borderColor = "#e2e6ef")}
+                            />
+                          </td>
+                          <td style={{ padding: "12px 14px", fontSize: 12, color: "#5c6278" }}>{fmtPrice(item.product.price)}</td>
+                          <td style={{ padding: "12px 14px", fontSize: 13, fontWeight: 600, color: "#1a1d2e" }}>{fmtPrice(item.product.price * item.quantity)}</td>
+                          <td style={{ padding: "12px 14px" }}>
+                            <button
+                              type="button" onClick={() => removeItem(item.product.id)}
+                              aria-label={`Remover ${item.product.name}`}
+                              style={{ padding: 6, borderRadius: 6, border: "none", cursor: "pointer", color: "#fa5252", background: "none", display: "flex" }}
+                              onMouseEnter={e => (e.currentTarget.style.background = "#fff1f2")}
+                              onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                            >
+                              <Trash2 size={13} aria-hidden="true" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <span className="text-sm font-semibold shrink-0" style={{ color: "#0F172A" }}>{fmtPrice(p.price)}</span>
-              </div>
-            )}
-            renderSelected={p => (
-              <div className="flex items-center justify-between gap-2 w-full">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: "#0F172A" }}>{p.name}</p>
-                  <p className="text-xs" style={{ color: "#64748B" }}>{fmtPrice(p.price)} · {p.stock} un. em estoque</p>
+
+                <div className="flex items-center justify-between" style={{ marginTop: 12, padding: "12px 14px", background: "#f8f9fc", borderRadius: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#5c6278" }}>Total estimado</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#1a1d2e" }}>{fmtPrice(orderTotal)}</span>
                 </div>
               </div>
-            )}
-          />
+            </>
+          )}
 
-          {selectedPrd && (
-            <div className="flex items-center gap-3 mt-3">
-              <div className="flex items-center gap-2 px-3 rounded-xl" style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", height: "38px" }}>
-                <span className="text-xs font-medium" style={{ color: "#64748B" }}>Qtd:</span>
-                <input
-                  type="text" inputMode="numeric" value={qty}
-                  onChange={e => setQty(sanitizeInteger(e.target.value, 5) || "1")}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") { e.preventDefault(); addItem(); return; }
-                    onNumericKeyDown(e);
-                  }}
-                  className="w-16 text-sm outline-none text-center"
-                  style={{ background: "transparent", border: "none", color: "#0F172A" }}
-                />
+          {apiError && (
+            <div style={{ marginTop: 16 }}>
+              <div role="alert" className="flex items-center gap-2 text-sm rounded-lg px-4 py-3"
+                style={{ color: "#991B1B", background: "#FEF2F2", border: "1px solid #FECACA" }}>
+                <AlertTriangle size={14} aria-hidden="true" />{apiError}
               </div>
-              <button type="button" onClick={addItem}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "linear-gradient(135deg, #1D4ED8, #4F46E5)", border: "none", cursor: "pointer" }}>
-                <Plus size={14} />Adicionar
-              </button>
             </div>
           )}
 
-          {formError && (
-            <p className="text-xs mt-2 flex items-center gap-1" style={{ color: "#DC2626" }}>
-              <AlertTriangle size={12} />{formError}
-            </p>
-          )}
-        </section>
+        </div>
 
-        {/* ── Seção 3: Resumo ── */}
-        {items.length > 0 && (
-          <section className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid #E8EEF5" }}>
-            <div className="flex items-center gap-2 px-5 py-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#FDF4FF" }}>
-                <ShoppingCart size={14} style={{ color: "#7C3AED" }} />
-              </div>
-              <h2 className="text-sm font-semibold" style={{ color: "#0F172A" }}>Resumo do pedido</h2>
-              <span className="ml-auto text-xs px-2 py-0.5 rounded-full" style={{ background: "#F1F5F9", color: "#64748B" }}>{items.length} {items.length === 1 ? "item" : "itens"}</span>
-            </div>
-
-            <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#F8FAFC" }}>
-                  {["Produto", "Qtd", "Preço unit.", "Subtotal", ""].map(h => (
-                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold" style={{ color: "#94A3B8" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map(item => (
-                  <tr key={item.product.id} style={{ borderTop: "1px solid #F8FAFC" }}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium" style={{ color: "#0F172A" }}>{item.product.name}</p>
-                      {item.product.category && <p className="text-xs" style={{ color: "#94A3B8" }}>{item.product.category.name}</p>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        type="text" inputMode="numeric"
-                        value={item.quantity}
-                        onChange={e => updateItemQty(item.product.id, e.target.value)}
-                        onKeyDown={onNumericKeyDown}
-                        className="w-14 text-sm text-center outline-none rounded-lg"
-                        style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", color: "#0F172A", padding: "4px 6px" }}
-                        onFocus={e => (e.currentTarget.style.borderColor = "#1D4ED8")}
-                        onBlur={e => (e.currentTarget.style.borderColor = "#E2E8F0")}
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: "#64748B" }}>{fmtPrice(item.product.price)}</td>
-                    <td className="px-4 py-3 font-semibold" style={{ color: "#0F172A" }}>{fmtPrice(item.product.price * item.quantity)}</td>
-                    <td className="px-4 py-3">
-                      <button type="button" onClick={() => removeItem(item.product.id)}
-                        className="p-1.5 rounded-lg"
-                        style={{ color: "#EF4444", background: "none", border: "none", cursor: "pointer" }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FFF1F2")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "none")}>
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: "1px solid #F1F5F9" }}>
-              <span className="text-sm font-semibold" style={{ color: "#374151" }}>Total estimado</span>
-              <span className="text-base font-bold" style={{ color: "#0F172A" }}>{fmtPrice(orderTotal)}</span>
-            </div>
-          </section>
-        )}
-
-        {apiError && (
-          <div className="text-sm rounded-xl px-4 py-3 flex items-center gap-2" style={{ color: "#991B1B", background: "#FEF2F2", border: "1px solid #FECACA" }}>
-            <AlertTriangle size={14} />{apiError}
-          </div>
-        )}
-
-        <button type="button" onClick={handleSubmit} disabled={loading || !customer || items.length === 0}
-          className="w-full flex items-center justify-center gap-2 font-semibold text-sm text-white rounded-xl"
-          style={{
-            padding: "12px 20px",
-            background: loading || !customer || items.length === 0 ? "#93C5FD" : "linear-gradient(135deg, #1D4ED8, #4F46E5)",
-            border: "none",
-            cursor: loading || !customer || items.length === 0 ? "not-allowed" : "pointer",
-            boxShadow: loading || !customer || items.length === 0 ? "none" : "0 1px 2px rgba(29,78,216,0.2), 0 6px 20px rgba(29,78,216,0.25)",
-            opacity: !customer || items.length === 0 ? 0.6 : 1,
-          }}>
-          {loading ? <><Loader2 size={16} className="animate-spin" />Criando...</> : "Criar pedido"}
-        </button>
+        {/* Footer */}
+        <div className="form-card__footer">
+          <button type="button" className="btn-secondary" onClick={() => router.push("/pedidos")}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={handleSubmit}
+            disabled={loading || !customer || items.length === 0}
+          >
+            {loading
+              ? <><Loader2 size={15} className="animate-spin" aria-hidden="true" />Criando...</>
+              : "Criar pedido"}
+          </button>
+        </div>
       </div>
+
     </div>
   );
 }
