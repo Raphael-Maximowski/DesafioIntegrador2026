@@ -41,7 +41,7 @@ function fmtShort(d: Date) {
 }
 
 /* ── Pie colors ── */
-const PIE_COLORS = ["#1D4ED8", "#7C3AED", "#0E7490", "#15803D", "#B45309", "#94A3B8"];
+const PIE_COLORS = ["#3b5bdb", "#7C3AED", "#0E7490", "#15803D", "#B45309", "#9da3b4"];
 
 /* ── KPI Card ── */
 interface KpiCardProps {
@@ -56,17 +56,17 @@ interface KpiCardProps {
 function KpiCard({ label, value, sub, icon: Icon, iconBg, iconColor, loading }: KpiCardProps) {
   return (
     <div className="rounded-2xl p-5 flex items-start gap-4"
-      style={{ background: "#fff", border: "1px solid #E8EEF5", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+      style={{ background: "#fff", border: "1px solid #e2e6ef", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconBg }}>
         <Icon size={18} style={{ color: iconColor }} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium mb-1" style={{ color: "#94A3B8" }}>{label}</p>
+        <p className="text-xs font-medium mb-1" style={{ color: "#9da3b4" }}>{label}</p>
         {loading
           ? <div className="skeleton-shimmer h-6 w-24 rounded mb-1" />
-          : <p className="text-xl font-bold" style={{ color: "#0F172A" }}>{value}</p>
+          : <p className="text-xl font-bold" style={{ color: "#1a1d2e" }}>{value}</p>
         }
-        {sub && !loading && <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>{sub}</p>}
+        {sub && !loading && <p className="text-xs mt-0.5" style={{ color: "#5c6278" }}>{sub}</p>}
       </div>
     </div>
   );
@@ -75,8 +75,8 @@ function KpiCard({ label, value, sub, icon: Icon, iconBg, iconColor, loading }: 
 /* ── Section card ── */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid #E8EEF5", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-      <p className="text-sm font-semibold mb-4" style={{ color: "#0F172A" }}>{title}</p>
+    <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid #e2e6ef", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+      <p className="text-sm font-semibold mb-4" style={{ color: "#1a1d2e" }}>{title}</p>
       {children}
     </div>
   );
@@ -88,8 +88,8 @@ function RangePill({ label, active, onClick }: { label: string; active: boolean;
     <button type="button" onClick={onClick}
       className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
       style={{
-        background: active ? "#1D4ED8" : "#F1F5F9",
-        color: active ? "#fff" : "#64748B",
+        background: active ? "#3b5bdb" : "#F1F5F9",
+        color: active ? "#fff" : "#5c6278",
         border: "none",
         cursor: "pointer",
         boxShadow: active ? "0 2px 8px rgba(29,78,216,0.25)" : "none",
@@ -103,8 +103,8 @@ function RangePill({ label, active, onClick }: { label: string; active: boolean;
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 text-xs shadow-lg" style={{ background: "#0F172A", color: "#fff" }}>
-      <p style={{ color: "#94A3B8", marginBottom: 2 }}>{label}</p>
+    <div className="rounded-xl px-3 py-2 text-xs shadow-lg" style={{ background: "#1a1d2e", color: "#fff" }}>
+      <p style={{ color: "#9da3b4", marginBottom: 2 }}>{label}</p>
       <p className="font-semibold">{fmtCurrencyFull(payload[0].value)}</p>
     </div>
   );
@@ -194,13 +194,13 @@ export default function DashboardPage() {
     : "Personalizado";
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-full" style={{ background: "#F8FAFC" }}>
+    <div className="p-4 sm:p-6 lg:p-8 min-h-full" style={{ background: "#f8f9fc" }}>
 
       {/* ── Header + Range ── */}
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "#0F172A" }}>Dashboard</h1>
-          <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>Visão geral do negócio</p>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "#1a1d2e" }}>Dashboard</h1>
+          <p className="text-sm mt-0.5" style={{ color: "#5c6278" }}>Visão geral do negócio</p>
         </div>
 
         {/* Range selector */}
@@ -220,8 +220,8 @@ export default function DashboardPage() {
               onClick={() => { setRange("custom"); setShowPicker(p => !p); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
-                background: range === "custom" ? "#1D4ED8" : "#F1F5F9",
-                color: range === "custom" ? "#fff" : "#64748B",
+                background: range === "custom" ? "#3b5bdb" : "#F1F5F9",
+                color: range === "custom" ? "#fff" : "#5c6278",
                 border: "none", cursor: "pointer",
                 boxShadow: range === "custom" ? "0 2px 8px rgba(29,78,216,0.25)" : "none",
               }}>
@@ -235,7 +235,7 @@ export default function DashboardPage() {
               )}
             </button>
             {showPicker && (
-              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 200, background: "#fff", border: "1px solid #E2E8F0", borderRadius: "16px", boxShadow: "0 8px 32px rgba(15,23,42,0.14)", padding: "12px" }}>
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e6ef", borderRadius: "16px", boxShadow: "0 8px 32px rgba(15,23,42,0.14)", padding: "12px" }}>
                 <DayPicker mode="range" selected={customRange}
                   onSelect={r => {
                     setCustomRange(r);
@@ -255,7 +255,7 @@ export default function DashboardPage() {
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <KpiCard label="Vendas totais"   value={fmtCurrency(overview?.kpis.totalSales ?? 0)}   icon={TrendingUp}   iconBg="#EFF6FF" iconColor="#1D4ED8" loading={loadingOv} />
+        <KpiCard label="Vendas totais"   value={fmtCurrency(overview?.kpis.totalSales ?? 0)}   icon={TrendingUp}   iconBg="#EFF6FF" iconColor="#3b5bdb" loading={loadingOv} />
         <KpiCard label="Pedidos"         value={fmtNumber(overview?.kpis.orderCount ?? 0)}      icon={ShoppingCart} iconBg="#F0FDF4" iconColor="#15803D" loading={loadingOv} />
         <KpiCard label="Ticket médio"    value={fmtCurrencyFull(overview?.kpis.averageTicket ?? 0)} icon={Wallet}  iconBg="#FDF4FF" iconColor="#7C3AED" loading={loadingOv} />
         <KpiCard label="Clientes ativos" value={fmtNumber(overview?.kpis.totalClients ?? 0)}   icon={Users}        iconBg="#FFF7ED" iconColor="#C2410C" loading={loadingOv} />
@@ -263,9 +263,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <KpiCard label="Valor em estoque"     value={fmtCurrency(products?.totalStockValue ?? 0)}    icon={Package}       iconBg="#ECFEFF" iconColor="#0E7490" loading={loadingPr} />
-        <KpiCard label="Unidades em estoque"  value={fmtNumber(products?.totalStock ?? 0)}            icon={Package}       iconBg="#F8FAFC" iconColor="#64748B" loading={loadingPr} />
+        <KpiCard label="Unidades em estoque"  value={fmtNumber(products?.totalStock ?? 0)}            icon={Package}       iconBg="#f8f9fc" iconColor="#5c6278" loading={loadingPr} />
         {/* Low stock card — expandable */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: `1px solid ${lowStockOpen ? "#FECACA" : "#E8EEF5"}`, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", transition: "border-color 0.15s" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: `1px solid ${lowStockOpen ? "#FECACA" : "#e2e6ef"}`, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", transition: "border-color 0.15s" }}>
           <button type="button" onClick={toggleLowStock}
             className="w-full flex items-start gap-4 p-5 text-left"
             style={{ background: "none", border: "none", cursor: "pointer" }}
@@ -275,12 +275,12 @@ export default function DashboardPage() {
               <AlertTriangle size={18} style={{ color: "#DC2626" }} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium mb-1" style={{ color: "#94A3B8" }}>Itens estoque baixo</p>
+              <p className="text-xs font-medium mb-1" style={{ color: "#9da3b4" }}>Itens estoque baixo</p>
               {loadingPr
                 ? <div className="skeleton-shimmer h-6 w-12 rounded" />
                 : <p className="text-xl font-bold" style={{ color: "#DC2626" }}>{fmtNumber(products?.lowStockCount ?? 0)}</p>
               }
-              <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
+              <p className="text-xs mt-0.5" style={{ color: "#5c6278" }}>
                 {lowStockOpen ? "Clique para fechar" : `Menos de ${products?.lowStockThreshold ?? 30} · Ver`}
               </p>
             </div>
@@ -297,15 +297,15 @@ export default function DashboardPage() {
                   <AlertTriangle size={12} />{lowStockError}
                 </p>
               ) : lowStockItems.length === 0 ? (
-                <p className="text-xs text-center py-4" style={{ color: "#94A3B8" }}>Nenhum produto abaixo do limiar</p>
+                <p className="text-xs text-center py-4" style={{ color: "#9da3b4" }}>Nenhum produto abaixo do limiar</p>
               ) : (
                 <div>
                   {lowStockItems.map((p, i) => (
                     <div key={p.id} className="flex items-center justify-between px-4 py-2.5"
                       style={{ borderBottom: i < lowStockItems.length - 1 ? "1px solid #FFF5F5" : "none" }}>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium truncate" style={{ color: "#0F172A" }}>{p.name}</p>
-                        <p className="text-xs" style={{ color: "#94A3B8" }}>{p.category?.name ?? "Sem categoria"}</p>
+                        <p className="text-xs font-medium truncate" style={{ color: "#1a1d2e" }}>{p.name}</p>
+                        <p className="text-xs" style={{ color: "#9da3b4" }}>{p.category?.name ?? "Sem categoria"}</p>
                       </div>
                       <span className="text-xs font-bold ml-3 shrink-0 px-2 py-0.5 rounded-full"
                         style={{ background: p.stock === 0 ? "#FEF2F2" : "#FFFBEB", color: p.stock === 0 ? "#DC2626" : "#B45309" }}>
@@ -334,10 +334,10 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={monthlySalesData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} width={50} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#9da3b4" }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: "#9da3b4" }} axisLine={false} tickLine={false} width={50} />
                   <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(29,78,216,0.04)" }} />
-                  <Bar dataKey="total" fill="#1D4ED8" radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="total" fill="#3b5bdb" radius={[6, 6, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -364,7 +364,7 @@ export default function DashboardPage() {
                   </Pie>
                   <Tooltip formatter={(v) => fmtCurrencyFull(Number(v))} />
                   <Legend iconType="circle" iconSize={8}
-                    formatter={v => <span style={{ fontSize: "11px", color: "#64748B" }}>{v}</span>} />
+                    formatter={v => <span style={{ fontSize: "11px", color: "#5c6278" }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -386,14 +386,14 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-2">
               {overview?.topProducts.map((p, i) => (
-                <div key={p.productId} className="flex items-center gap-3 py-2" style={{ borderBottom: i < (overview.topProducts.length - 1) ? "1px solid #F8FAFC" : "none" }}>
+                <div key={p.productId} className="flex items-center gap-3 py-2" style={{ borderBottom: i < (overview.topProducts.length - 1) ? "1px solid #f8f9fc" : "none" }}>
                   <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ background: "#EFF6FF", color: "#1D4ED8" }}>{i + 1}</span>
+                    style={{ background: "#EFF6FF", color: "#3b5bdb" }}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "#0F172A" }}>{p.name}</p>
-                    <p className="text-xs" style={{ color: "#94A3B8" }}>{p.category}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: "#1a1d2e" }}>{p.name}</p>
+                    <p className="text-xs" style={{ color: "#9da3b4" }}>{p.category}</p>
                   </div>
-                  <span className="text-sm font-semibold shrink-0" style={{ color: "#0F172A" }}>{fmtCurrency(p.amount)}</span>
+                  <span className="text-sm font-semibold shrink-0" style={{ color: "#1a1d2e" }}>{fmtCurrency(p.amount)}</span>
                 </div>
               ))}
             </div>
@@ -416,15 +416,15 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                         style={{ background: "#F0FDF4", color: "#15803D" }}>{i + 1}</span>
-                      <span className="text-sm font-medium" style={{ color: "#0F172A" }}>{r.state}</span>
+                      <span className="text-sm font-medium" style={{ color: "#1a1d2e" }}>{r.state}</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-sm font-semibold" style={{ color: "#0F172A" }}>{fmtCurrency(r.amount)}</span>
-                      <span className="text-xs ml-2" style={{ color: "#94A3B8" }}>{r.percentage.toFixed(1)}%</span>
+                      <span className="text-sm font-semibold" style={{ color: "#1a1d2e" }}>{fmtCurrency(r.amount)}</span>
+                      <span className="text-xs ml-2" style={{ color: "#9da3b4" }}>{r.percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#F1F5F9" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${r.percentage}%`, background: "linear-gradient(90deg, #1D4ED8, #4F46E5)" }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${r.percentage}%`, background: "#3b5bdb" }} />
                   </div>
                 </div>
               ))}
@@ -434,22 +434,22 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Inventory footer ── */}
-      <div className="mt-5 rounded-2xl p-4 flex items-center gap-6 flex-wrap" style={{ background: "#fff", border: "1px solid #E8EEF5" }}>
+      <div className="mt-5 rounded-2xl p-4 flex items-center gap-6 flex-wrap" style={{ background: "#fff", border: "1px solid #e2e6ef" }}>
         <div className="flex items-center gap-2">
-          <Tag size={14} style={{ color: "#94A3B8" }} />
-          <span className="text-xs" style={{ color: "#64748B" }}>Categorias ativas:</span>
+          <Tag size={14} style={{ color: "#9da3b4" }} />
+          <span className="text-xs" style={{ color: "#5c6278" }}>Categorias ativas:</span>
           {loadingPr
             ? <div className="skeleton-shimmer h-4 w-8 rounded" />
-            : <span className="text-sm font-semibold" style={{ color: "#0F172A" }}>{products?.activeCategories ?? 0}</span>
+            : <span className="text-sm font-semibold" style={{ color: "#1a1d2e" }}>{products?.activeCategories ?? 0}</span>
           }
         </div>
-        <div className="h-4 w-px" style={{ background: "#E2E8F0" }} />
+        <div className="h-4 w-px" style={{ background: "#e2e6ef" }} />
         <div className="flex items-center gap-2">
-          <Users size={14} style={{ color: "#94A3B8" }} />
-          <span className="text-xs" style={{ color: "#64748B" }}>Total de clientes:</span>
+          <Users size={14} style={{ color: "#9da3b4" }} />
+          <span className="text-xs" style={{ color: "#5c6278" }}>Total de clientes:</span>
           {loadingPr
             ? <div className="skeleton-shimmer h-4 w-8 rounded" />
-            : <span className="text-sm font-semibold" style={{ color: "#0F172A" }}>{fmtNumber(clients?.totalClients ?? 0)}</span>
+            : <span className="text-sm font-semibold" style={{ color: "#1a1d2e" }}>{fmtNumber(clients?.totalClients ?? 0)}</span>
           }
         </div>
       </div>

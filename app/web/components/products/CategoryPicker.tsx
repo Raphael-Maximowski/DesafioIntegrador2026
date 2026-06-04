@@ -46,7 +46,7 @@ export default function CategoryPicker({ categories, value, onChange, onCategory
     setSaving(true);
     setCreateError("");
     try {
-      const cat = await createCategory({ name, description: name });
+      const cat = await createCategory({ name, description: "" });
       onCategoryCreated?.(cat);
       onChange(cat.id);
       setCreating(false);
