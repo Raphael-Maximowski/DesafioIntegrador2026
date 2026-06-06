@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Mail, MapPin, Map, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Mail, MapPin, Map, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { getCustomer, updateCustomer, listStates } from "@/services/customers";
 import type { Customer, CustomerState } from "@/types/customer";
 
@@ -18,17 +18,28 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  id, label, error, required, children,
+}: {
+  id: string; label: string; error?: string; required?: boolean; children: React.ReactNode;
+}) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
+      <label htmlFor={id} style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
         {label}
+        {required && <span aria-hidden="true" style={{ color: "#fa5252", marginLeft: 2 }}>*</span>}
       </label>
       {children}
       <p
-        className="text-xs mt-1.5 font-medium"
-        style={{ color: error ? "#DC2626" : "transparent", minHeight: "16px", lineHeight: "16px" }}
+        id={`${id}-error`}
+        role={error ? "alert" : undefined}
+        style={{
+          minHeight: 18, marginTop: 5, fontSize: 12, fontWeight: 500,
+          color: error ? "#fa5252" : "transparent",
+          display: "flex", alignItems: "center", gap: 4,
+        }}
       >
+        {error && <AlertCircle size={12} aria-hidden="true" />}
         {error ?? " "}
       </p>
     </div>
@@ -36,35 +47,40 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 function InputIcon({
-  icon: Icon,
-  hasError,
-  isValid,
+  id, icon: Icon, hasError, isValid,
+  onFocus: onFocusProp, onBlur: onBlurProp,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & {
-  icon: React.ElementType;
-  hasError?: boolean;
-  isValid?: boolean;
+  id: string; icon: React.ElementType; hasError?: boolean; isValid?: boolean;
 }) {
+  const [focused, setFocused] = useState(false);
+  const iconColor = hasError ? "#fa5252" : isValid ? "#12b886" : focused ? "#3b5bdb" : "#9da3b4";
+
   return (
     <div className="relative">
       <span
-        className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-        style={{ color: hasError ? "#DC2626" : isValid ? "#16A34A" : "#9CA3AF" }}
+        style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: iconColor, transition: "color 0.15s" }}
+        aria-hidden="true"
       >
         <Icon size={16} />
       </span>
       <input
+        id={id}
         className="saas-input has-icon-left"
         style={{
-          borderColor: hasError ? "#FCA5A5" : isValid ? "#86EFAC" : undefined,
-          background:  hasError ? "#FFF5F5" : isValid ? "#F0FDF4" : undefined,
-          paddingRight: isValid ? "36px" : undefined,
+          borderColor: hasError ? "#fa5252" : isValid ? "#12b886" : undefined,
+          background:  hasError ? "#fff8f8"  : isValid ? "#f0fdf4" : undefined,
+          paddingRight: isValid ? 36 : undefined,
         }}
+        aria-invalid={hasError ? "true" : undefined}
+        aria-describedby={hasError ? `${id}-error` : undefined}
+        onFocus={e => { setFocused(true);  onFocusProp?.(e); }}
+        onBlur={e  => { setFocused(false); onBlurProp?.(e);  }}
         {...props}
       />
       {isValid && (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <CheckCircle2 size={15} style={{ color: "#16A34A" }} />
+        <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} aria-hidden="true">
+          <CheckCircle2 size={15} style={{ color: "#12b886" }} />
         </span>
       )}
     </div>
@@ -83,6 +99,7 @@ export default function EditarClientePage() {
   const [apiError, setApiError] = useState("");
   const [loading,  setLoading]  = useState(false);
   const [saved,    setSaved]    = useState(false);
+  const [stateFocused, setStateFocused] = useState(false);
 
   const { register, handleSubmit, watch, reset, formState: { errors, isDirty } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -99,11 +116,13 @@ export default function EditarClientePage() {
   const cityValid  = !errors.city  && !!city  && city.length  >= 2;
   const stateValid = !errors.state && !!state;
 
+  const stateIconColor = errors.state ? "#fa5252" : stateValid ? "#12b886" : stateFocused ? "#3b5bdb" : "#9da3b4";
+  const { onBlur: stateOnBlur, ...stateReg } = register("state");
+
   useEffect(() => {
     Promise.all([getCustomer(id), listStates()])
       .then(([c, s]) => {
-        setCustomer(c);
-        setStates(s);
+        setCustomer(c); setStates(s);
         reset({ name: c.name, email: c.email, city: c.city, state: c.state });
       })
       .catch(() => setFetchErr("Cliente não encontrado ou erro ao carregar."))
@@ -111,9 +130,7 @@ export default function EditarClientePage() {
   }, [id, reset]);
 
   async function onSubmit(data: FormData) {
-    setLoading(true);
-    setApiError("");
-    setSaved(false);
+    setLoading(true); setApiError(""); setSaved(false);
     try {
       await updateCustomer(id, data);
       setSaved(true);
@@ -135,26 +152,19 @@ export default function EditarClientePage() {
 
   if (fetching) {
     return (
-      <div className="p-6 lg:p-8 flex items-center justify-center" style={{ minHeight: "200px" }}>
-        <Loader2 size={24} className="animate-spin" style={{ color: "#94A3B8" }} />
+      <div className="flex items-center justify-center" style={{ height: 200 }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: "#9da3b4" }} />
       </div>
     );
   }
 
   if (fetchErr) {
     return (
-      <div className="p-6 lg:p-8 max-w-xl">
-        <div
-          className="text-sm rounded-xl px-4 py-3"
-          style={{ background: "#FEF2F2", color: "#991B1B", border: "1px solid #FECACA" }}
-        >
+      <div style={{ padding: "32px 28px" }}>
+        <div className="text-sm rounded-lg px-4 py-3" style={{ background: "#FEF2F2", color: "#991B1B", border: "1px solid #FECACA", maxWidth: 680, margin: "0 auto" }}>
           {fetchErr}
         </div>
-        <button
-          onClick={() => router.push("/clientes")}
-          className="mt-4 flex items-center gap-1.5 text-sm"
-          style={{ color: "#64748B", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-        >
+        <button type="button" className="form-back-link" style={{ marginTop: 16 }} onClick={() => router.push("/clientes")}>
           <ArrowLeft size={15} /> Voltar para clientes
         </button>
       </div>
@@ -162,131 +172,113 @@ export default function EditarClientePage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-xl">
-      <button
-        onClick={() => router.push("/clientes")}
-        className="flex items-center gap-1.5 text-sm mb-6 transition-colors"
-        style={{ color: "#64748B", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-      >
-        <ArrowLeft size={15} />
+    <div style={{ background: "#f8f9fc", minHeight: "100%", padding: "32px 28px 48px" }}>
+
+      <button type="button" className="form-back-link" onClick={() => router.push("/clientes")}>
+        <ArrowLeft size={15} aria-hidden="true" />
         Voltar para clientes
       </button>
 
-      <div className="mb-6">
-        <h1 className="text-xl font-bold" style={{ color: "#0F172A" }}>
-          Editar cliente
-        </h1>
-        <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>
-          {customer?.name}
-        </p>
+      <div className="form-card">
+        <div className="form-card__header">
+          <h1 className="form-card__title">Editar cliente</h1>
+          <p className="form-card__subtitle">{customer?.name}</p>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="form-card__body">
+
+            <Field id="name" label="Nome completo" error={errors.name?.message} required>
+              <InputIcon
+                id="name" icon={User} type="text"
+                placeholder="João Silva" maxLength={100}
+                hasError={!!errors.name} isValid={nameValid}
+                aria-required="true"
+                {...register("name")}
+              />
+            </Field>
+
+            <Field id="email" label="E-mail" error={errors.email?.message} required>
+              <InputIcon
+                id="email" icon={Mail} type="email" autoComplete="email"
+                placeholder="cliente@empresa.com"
+                hasError={!!errors.email} isValid={emailValid}
+                aria-required="true"
+                {...register("email")}
+              />
+            </Field>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <Field id="city" label="Cidade" error={errors.city?.message} required>
+                <InputIcon
+                  id="city" icon={MapPin} type="text"
+                  placeholder="São Paulo" maxLength={100}
+                  hasError={!!errors.city} isValid={cityValid}
+                  aria-required="true"
+                  {...register("city")}
+                />
+              </Field>
+
+              <Field id="state" label="Estado" error={errors.state?.message} required>
+                <div className="relative">
+                  <span
+                    style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: stateIconColor, transition: "color 0.15s" }}
+                    aria-hidden="true"
+                  >
+                    <Map size={16} />
+                  </span>
+                  <select
+                    id="state"
+                    className="saas-input has-icon-left"
+                    style={{
+                      borderColor: errors.state ? "#fa5252" : stateValid ? "#12b886" : undefined,
+                      background:  errors.state ? "#fff8f8"  : stateValid ? "#f0fdf4" : undefined,
+                    }}
+                    aria-required="true"
+                    aria-invalid={!!errors.state ? "true" : undefined}
+                    aria-describedby={errors.state ? "state-error" : undefined}
+                    onFocus={() => setStateFocused(true)}
+                    onBlur={e => { setStateFocused(false); stateOnBlur(e); }}
+                    {...stateReg}
+                  >
+                    <option value="">Selecione</option>
+                    {states.map(s => (
+                      <option key={s.symbol} value={s.symbol}>{s.symbol} — {s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </Field>
+            </div>
+
+            {apiError && (
+              <div role="alert" className="flex items-center gap-2 text-sm rounded-lg px-4 py-3"
+                style={{ color: "#991B1B", background: "#FEF2F2", border: "1px solid #FECACA" }}>
+                <AlertCircle size={14} aria-hidden="true" />{apiError}
+              </div>
+            )}
+
+            {saved && (
+              <div role="status" className="flex items-center gap-2 text-sm rounded-lg px-4 py-3"
+                style={{ color: "#0d6c4c", background: "#f0fdf4", border: "1px solid #86efac" }}>
+                <CheckCircle2 size={14} aria-hidden="true" />Dados atualizados com sucesso.
+              </div>
+            )}
+
+          </div>
+
+          <div className="form-card__footer">
+            <button type="button" className="btn-secondary" onClick={() => router.push("/clientes")}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-primary" disabled={loading || !isDirty}>
+              {loading
+                ? <><Loader2 size={15} className="animate-spin" aria-hidden="true" />Salvando...</>
+                : "Salvar alterações"}
+            </button>
+          </div>
+        </form>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-1">
-        <Field label="Nome completo" error={errors.name?.message}>
-          <InputIcon
-            icon={User}
-            type="text"
-            placeholder="João Silva"
-            hasError={!!errors.name}
-            isValid={nameValid}
-            {...register("name")}
-          />
-        </Field>
-
-        <Field label="E-mail" error={errors.email?.message}>
-          <InputIcon
-            icon={Mail}
-            type="email"
-            autoComplete="email"
-            placeholder="cliente@empresa.com"
-            hasError={!!errors.email}
-            isValid={emailValid}
-            {...register("email")}
-          />
-        </Field>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Cidade" error={errors.city?.message}>
-            <InputIcon
-              icon={MapPin}
-              type="text"
-              placeholder="São Paulo"
-              hasError={!!errors.city}
-              isValid={cityValid}
-              {...register("city")}
-            />
-          </Field>
-
-          <Field label="Estado" error={errors.state?.message}>
-            <div className="relative">
-              <span
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: errors.state ? "#DC2626" : stateValid ? "#16A34A" : "#9CA3AF" }}
-              >
-                <Map size={16} />
-              </span>
-              <select
-                className="saas-input has-icon-left"
-                style={{
-                  borderColor: errors.state ? "#FCA5A5" : stateValid ? "#86EFAC" : undefined,
-                  background:  errors.state ? "#FFF5F5" : stateValid ? "#F0FDF4" : undefined,
-                  cursor: "pointer",
-                }}
-                {...register("state")}
-              >
-                <option value="">Selecione</option>
-                {states.map((s) => (
-                  <option key={s.symbol} value={s.symbol}>
-                    {s.symbol} — {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </Field>
-        </div>
-
-        {apiError && (
-          <div
-            className="text-sm rounded-xl px-4 py-3 flex items-center gap-2"
-            style={{ color: "#991B1B", background: "#FEF2F2", border: "1px solid #FECACA" }}
-          >
-            <span>⚠</span>
-            {apiError}
-          </div>
-        )}
-
-        {saved && (
-          <div
-            className="text-sm rounded-xl px-4 py-3 flex items-center gap-2"
-            style={{ color: "#166534", background: "#F0FDF4", border: "1px solid #86EFAC" }}
-          >
-            <CheckCircle2 size={15} />
-            Dados atualizados com sucesso.
-          </div>
-        )}
-
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={loading || !isDirty}
-            className="w-full flex items-center justify-center gap-2 font-semibold text-sm text-white rounded-xl"
-            style={{
-              padding: "12px 20px",
-              background: loading || !isDirty ? "#93C5FD" : "linear-gradient(135deg, #1D4ED8, #4F46E5)",
-              border: "none",
-              cursor: loading || !isDirty ? "not-allowed" : "pointer",
-              boxShadow: loading || !isDirty ? "none" : "0 1px 2px rgba(29,78,216,0.2), 0 6px 20px rgba(29,78,216,0.25)",
-              opacity: !isDirty && !loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? (
-              <><Loader2 size={16} className="animate-spin" />Salvando...</>
-            ) : (
-              "Salvar alterações"
-            )}
-          </button>
-        </div>
-      </form>
     </div>
   );
 }
