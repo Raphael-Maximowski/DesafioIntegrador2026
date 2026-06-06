@@ -1,20 +1,4 @@
 services:
-  postgres-flask:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: app
-    ports:
-      - "5434:5432"
-    volumes:
-      - pgdata-flask:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   postgres-nest:
     image: postgres:16-alpine
     environment:
@@ -54,14 +38,16 @@ services:
 
   api-flask:
     build: ./packages/api-flask
+    volumes: 
+      - ./packages/api-flask:/app
     environment:
-      DATABASE_URL: postgresql://app:app@postgres-flask:5432/app
+      DATABASE_URL: postgresql://app:app@postgres-nest:5432/app
       SECRET_KEY: dev-insecure-change-me
       DEBUG: "False"
     ports:
       - "8001:8000"
     depends_on:
-      postgres-flask:
+      postgres-nest:
         condition: service_healthy
 
   api-nest:
@@ -110,5 +96,4 @@ services:
       - api-nest
 
 volumes:
-  pgdata-flask:
   pgdata-nest:
