@@ -46,7 +46,7 @@ const SAMPLE: Customer[] = [
 
 /* ── Avatar ── */
 const AV_COLORS = [
-  { bg: "#EFF6FF", text: "#1D4ED8" }, { bg: "#FFF7ED", text: "#C2410C" },
+  { bg: "#EFF6FF", text: "#3b5bdb" }, { bg: "#FFF7ED", text: "#C2410C" },
   { bg: "#F0FDF4", text: "#15803D" }, { bg: "#FDF4FF", text: "#9333EA" },
   { bg: "#FFF1F2", text: "#BE123C" }, { bg: "#ECFEFF", text: "#0E7490" },
   { bg: "#FEFCE8", text: "#A16207" },
@@ -75,7 +75,7 @@ function isRecent(iso: string) {
 /* ── Skeleton ── */
 function SkeletonRow({ delay }: { delay: number }) {
   return (
-    <tr style={{ borderBottom: "1px solid #F8FAFC" }}>
+    <tr style={{ borderBottom: "1px solid #f8f9fc" }}>
       {[12, 40, 40, 24, 20, 16, 20].map((w, i) => (
         <td key={i} className="px-4 py-3.5">
           <div className="skeleton-shimmer h-3.5 rounded" style={{ width: `${w * 2}px`, maxWidth: "100%", animationDelay: `${delay + i * 30}ms` }} />
@@ -90,8 +90,8 @@ function StatusBadge({ createdAt }: { createdAt: string }) {
   const recent = isRecent(createdAt);
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
-      style={{ background: recent ? "#F0FDF4" : "#F8FAFC", color: recent ? "#15803D" : "#64748B", border: `1px solid ${recent ? "#BBF7D0" : "#E2E8F0"}` }}>
-      <span className="w-1.5 h-1.5 rounded-full" style={{ background: recent ? "#22C55E" : "#94A3B8" }} />
+      style={{ background: recent ? "#F0FDF4" : "#f8f9fc", color: recent ? "#15803D" : "#5c6278", border: `1px solid ${recent ? "#BBF7D0" : "#e2e6ef"}` }}>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: recent ? "#22C55E" : "#9da3b4" }} />
       Ativo
     </span>
   );
@@ -132,8 +132,8 @@ function DateRangePicker({
         style={{
           height: "36px",
           background: active ? "#EFF6FF" : "#fff",
-          border: `1.5px solid ${open || active ? "#1D4ED8" : "#E2E8F0"}`,
-          color: active ? "#1D4ED8" : "#64748B",
+          border: `1.5px solid ${open || active ? "#3b5bdb" : "#e2e6ef"}`,
+          color: active ? "#3b5bdb" : "#5c6278",
           cursor: "pointer",
           whiteSpace: "nowrap",
           boxShadow: open ? "0 0 0 3px rgba(29,78,216,0.1)" : "none",
@@ -146,7 +146,7 @@ function DateRangePicker({
             role="button"
             onClick={e => { e.stopPropagation(); onChange(undefined); }}
             className="flex items-center"
-            style={{ color: "#94A3B8", cursor: "pointer" }}
+            style={{ color: "#9da3b4", cursor: "pointer" }}
           >
             <X size={12} />
           </span>
@@ -161,7 +161,7 @@ function DateRangePicker({
             left: 0,
             zIndex: 200,
             background: "#fff",
-            border: "1px solid #E2E8F0",
+            border: "1px solid #e2e6ef",
             borderRadius: "16px",
             boxShadow: "0 8px 32px rgba(15,23,42,0.14)",
             padding: "12px",
@@ -179,7 +179,7 @@ function DateRangePicker({
             <div style={{ textAlign: "right", paddingTop: "8px", borderTop: "1px solid #F1F5F9" }}>
               <button
                 onClick={() => { onChange(undefined); setOpen(false); }}
-                style={{ fontSize: "12px", color: "#94A3B8", background: "none", border: "none", cursor: "pointer" }}
+                style={{ fontSize: "12px", color: "#9da3b4", background: "none", border: "none", cursor: "pointer" }}
               >
                 Limpar
               </button>
@@ -194,15 +194,15 @@ function DateRangePicker({
 /* ── ViewModal ── */
 function InfoRow({ label, value, icon: Icon, muted }: { label: string; value: string; icon?: React.ElementType; muted?: boolean }) {
   return (
-    <div className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid #F8FAFC" }}>
+    <div className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid #f8f9fc" }}>
       {Icon && (
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#F8FAFC" }}>
-          <Icon size={13} style={{ color: "#94A3B8" }} />
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#f8f9fc" }}>
+          <Icon size={13} style={{ color: "#9da3b4" }} />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs mb-0.5" style={{ color: "#94A3B8" }}>{label}</p>
-        <p className="text-sm font-medium truncate" style={{ color: muted ? "#94A3B8" : "#0F172A", fontStyle: muted ? "italic" : "normal" }}>{value || "—"}</p>
+        <p className="text-xs mb-0.5" style={{ color: "#9da3b4" }}>{label}</p>
+        <p className="text-sm font-medium truncate" style={{ color: muted ? "#9da3b4" : "#1a1d2e", fontStyle: muted ? "italic" : "normal" }}>{value || "—"}</p>
       </div>
     </div>
   );
@@ -221,17 +221,17 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
         style={{
           maxWidth: "440px",
           background: "#fff",
-          border: "1px solid #E2E8F0",
+          border: "1px solid #e2e6ef",
           boxShadow: "0 24px 64px rgba(15,23,42,0.2)",
         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
-          <p className="text-sm font-semibold" style={{ color: "#0F172A" }}>Detalhes do cliente</p>
+          <p className="text-sm font-semibold" style={{ color: "#1a1d2e" }}>Detalhes do cliente</p>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
-            style={{ background: "#F1F5F9", border: "none", cursor: "pointer", color: "#64748B" }}
+            style={{ background: "#F1F5F9", border: "none", cursor: "pointer", color: "#5c6278" }}
           >
             <X size={15} />
           </button>
@@ -247,7 +247,7 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
               {initials(customer.name)}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-base leading-tight" style={{ color: "#0F172A" }}>{customer.name}</p>
+              <p className="font-semibold text-base leading-tight" style={{ color: "#1a1d2e" }}>{customer.name}</p>
               <div className="mt-1.5">
                 <StatusBadge createdAt={customer.createdAt} />
               </div>
@@ -283,7 +283,7 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
             onClick={onEdit}
             className="flex-1 py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2"
             style={{
-              background: "linear-gradient(135deg, #1D4ED8, #4F46E5)",
+              background: "#3b5bdb",
               color: "#fff",
               border: "none",
               cursor: "pointer",
@@ -303,13 +303,13 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
 function ConfirmDialog({ name, onConfirm, onCancel, loading }: { name: string; onConfirm(): void; onCancel(): void; loading: boolean }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: "#fff", border: "1px solid #E2E8F0", boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}>
+      <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: "#fff", border: "1px solid #e2e6ef", boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "#FEF2F2" }}>
           <AlertTriangle size={20} style={{ color: "#DC2626" }} />
         </div>
-        <h3 className="font-semibold text-base mb-1" style={{ color: "#0F172A" }}>Excluir cliente</h3>
-        <p className="text-sm mb-6 leading-relaxed" style={{ color: "#64748B" }}>
-          Tem certeza que deseja excluir <span className="font-semibold" style={{ color: "#0F172A" }}>{name}</span>? Esta ação não pode ser desfeita.
+        <h3 className="font-semibold text-base mb-1" style={{ color: "#1a1d2e" }}>Excluir cliente</h3>
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: "#5c6278" }}>
+          Tem certeza que deseja excluir <span className="font-semibold" style={{ color: "#1a1d2e" }}>{name}</span>? Esta ação não pode ser desfeita.
         </p>
         <div className="flex gap-2">
           <button onClick={onCancel} disabled={loading} className="flex-1 py-2.5 text-sm font-medium rounded-xl" style={{ background: "#F1F5F9", color: "#374151", border: "none", cursor: "pointer" }}>Cancelar</button>
@@ -340,7 +340,6 @@ export default function ClientesPage() {
   const [deleting,      setDeleting]      = useState(false);
   const [error,         setError]         = useState("");
   const [hoveredRow,    setHoveredRow]    = useState<string | null>(null);
-  const [selectedRows,  setSelectedRows]  = useState<Set<string>>(new Set());
   const [usingSample,   setUsingSample]   = useState(false);
 
   const debouncedSearch = useDebounce(search, 400);
@@ -417,23 +416,14 @@ export default function ClientesPage() {
   const from = total === 0 ? 0 : (page - 1) * PAGE_LIMIT + 1;
   const to   = Math.min(page * PAGE_LIMIT, total);
 
-  function toggleSelect(id: string) {
-    setSelectedRows(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  }
-  function toggleAll() {
-    if (selectedRows.size === displayCustomers.length) setSelectedRows(new Set());
-    else setSelectedRows(new Set(displayCustomers.map(c => c.id)));
-  }
-  const allSelected = displayCustomers.length > 0 && selectedRows.size === displayCustomers.length;
-
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-full" style={{ background: "#F8FAFC" }}>
+    <div className="p-4 sm:p-6 lg:p-8 min-h-full" style={{ background: "#f8f9fc" }}>
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "#0F172A" }}>Clientes</h1>
-          <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "#1a1d2e" }}>Clientes</h1>
+          <p className="text-sm mt-0.5" style={{ color: "#5c6278" }}>
             {loading ? "Carregando..." : `${usingSample ? "123" : total} cliente${total !== 1 ? "s" : ""} cadastrado${total !== 1 ? "s" : ""}`}
             {usingSample && <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: "#FEF9C3", color: "#A16207" }}>demo</span>}
           </p>
@@ -441,7 +431,7 @@ export default function ClientesPage() {
         <button
           onClick={() => router.push("/clientes/novo")}
           className="shrink-0 flex items-center gap-2 text-sm font-semibold text-white rounded-xl"
-          style={{ padding: "10px 18px", background: "linear-gradient(135deg, #1D4ED8, #4F46E5)", border: "none", cursor: "pointer", boxShadow: "0 1px 2px rgba(29,78,216,0.2), 0 4px 16px rgba(29,78,216,0.25)" }}
+          style={{ padding: "10px 18px", background: "#3b5bdb", border: "none", cursor: "pointer", boxShadow: "0 1px 2px rgba(29,78,216,0.2), 0 4px 16px rgba(29,78,216,0.25)" }}
         >
           <Plus size={15} />
           <span className="hidden sm:inline">Novo cliente</span>
@@ -452,9 +442,9 @@ export default function ClientesPage() {
       {/* ── Search ── */}
       <div
         className="flex items-center gap-2.5 rounded-xl px-3.5 mb-3 transition-all"
-        style={{ background: "#fff", border: `1.5px solid ${searchFocused ? "#1D4ED8" : "#E2E8F0"}`, height: "46px", boxShadow: searchFocused ? "0 0 0 3px rgba(29,78,216,0.1)" : "0 1px 3px rgba(15,23,42,0.06)" }}
+        style={{ background: "#fff", border: `1.5px solid ${searchFocused ? "#3b5bdb" : "#e2e6ef"}`, height: "46px", boxShadow: searchFocused ? "0 0 0 3px rgba(29,78,216,0.1)" : "0 1px 3px rgba(15,23,42,0.06)" }}
       >
-        <Search size={16} style={{ color: searchFocused ? "#1D4ED8" : "#94A3B8", flexShrink: 0 }} />
+        <Search size={16} style={{ color: searchFocused ? "#3b5bdb" : "#9da3b4", flexShrink: 0 }} />
         <input
           type="text"
           placeholder="Pesquisar por nome ou e-mail..."
@@ -463,10 +453,10 @@ export default function ClientesPage() {
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
           className="flex-1 text-sm outline-none"
-          style={{ background: "transparent", color: "#0F172A", border: "none" }}
+          style={{ background: "transparent", color: "#1a1d2e", border: "none" }}
         />
         {search && (
-          <button onClick={() => setSearch("")} className="p-0.5 rounded" style={{ color: "#94A3B8", background: "none", border: "none", cursor: "pointer" }}>
+          <button onClick={() => setSearch("")} className="p-0.5 rounded" style={{ color: "#9da3b4", background: "none", border: "none", cursor: "pointer" }}>
             <X size={14} />
           </button>
         )}
@@ -477,14 +467,14 @@ export default function ClientesPage() {
         {/* Região */}
         <div
           className="flex items-center gap-2 px-3 rounded-xl"
-          style={{ background: regiaoFilter ? "#EFF6FF" : "#fff", border: `1.5px solid ${regiaoFilter ? "#1D4ED8" : "#E2E8F0"}`, height: "36px", minWidth: "160px" }}
+          style={{ background: regiaoFilter ? "#EFF6FF" : "#fff", border: `1.5px solid ${regiaoFilter ? "#3b5bdb" : "#e2e6ef"}`, height: "36px", minWidth: "160px" }}
         >
-          <MapPin size={13} style={{ color: regiaoFilter ? "#1D4ED8" : "#94A3B8", flexShrink: 0 }} />
+          <MapPin size={13} style={{ color: regiaoFilter ? "#3b5bdb" : "#9da3b4", flexShrink: 0 }} />
           <select
             value={regiaoFilter}
             onChange={e => { setRegiaoFilter(e.target.value); setPage(1); }}
             className="flex-1 text-xs outline-none font-medium"
-            style={{ background: "transparent", border: "none", color: regiaoFilter ? "#1D4ED8" : "#64748B", cursor: "pointer" }}
+            style={{ background: "transparent", border: "none", color: regiaoFilter ? "#3b5bdb" : "#5c6278", cursor: "pointer" }}
           >
             <option value="">Todas as regiões</option>
             {REGIONS.map(r => (
@@ -494,7 +484,7 @@ export default function ClientesPage() {
         </div>
 
         {/* Divider */}
-        <div className="h-6 w-px shrink-0" style={{ background: "#E2E8F0" }} />
+        <div className="h-6 w-px shrink-0" style={{ background: "#e2e6ef" }} />
 
         {/* Date range */}
         <DateRangePicker value={dateRange} onChange={setDateRange} />
@@ -502,7 +492,7 @@ export default function ClientesPage() {
         {/* Clear */}
         {hasFilters && (
           <>
-            <div className="h-6 w-px shrink-0" style={{ background: "#E2E8F0" }} />
+            <div className="h-6 w-px shrink-0" style={{ background: "#e2e6ef" }} />
             <button
               onClick={clearFilters}
               className="flex items-center gap-1.5 px-3 rounded-xl text-xs font-medium transition-colors"
@@ -514,11 +504,6 @@ export default function ClientesPage() {
           </>
         )}
 
-        {selectedRows.size > 0 && (
-          <span className="ml-auto text-xs font-medium px-3 py-1.5 rounded-xl" style={{ background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
-            {selectedRows.size} selecionado{selectedRows.size > 1 ? "s" : ""}
-          </span>
-        )}
       </div>
 
       {/* ── Error ── */}
@@ -529,22 +514,13 @@ export default function ClientesPage() {
       )}
 
       {/* ── Table card ── */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid #E8EEF5", boxShadow: "0 1px 3px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.04)" }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e2e6ef", boxShadow: "0 1px 3px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.04)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm" style={{ borderCollapse: "collapse", minWidth: "680px" }}>
             <thead>
-              <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #EEF2F7" }}>
-                <th className="px-4 py-3.5 w-10">
-                  <button
-                    onClick={toggleAll}
-                    className="w-4 h-4 rounded flex items-center justify-center"
-                    style={{ border: `1.5px solid ${allSelected ? "#1D4ED8" : "#CBD5E1"}`, background: allSelected ? "#1D4ED8" : "#fff", cursor: "pointer" }}
-                  >
-                    {allSelected && <span className="text-white" style={{ fontSize: "9px", lineHeight: 1 }}>✓</span>}
-                  </button>
-                </th>
+              <tr style={{ background: "#f8f9fc", borderBottom: "2px solid #e2e6ef" }}>
                 {["Nome Completo", "E-mail", "Localização", "Cadastro", "Status", "Ações"].map(h => (
-                  <th key={h} className="px-4 py-3.5 text-left text-xs font-semibold tracking-wider" style={{ color: "#94A3B8" }}>{h}</th>
+                  <th key={h} className="px-4 py-3.5 text-left text-xs font-semibold tracking-wider" style={{ color: "#9da3b4" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -560,7 +536,7 @@ export default function ClientesPage() {
                     <p className="font-medium text-sm mb-1" style={{ color: "#374151" }}>
                       {hasFilters ? "Nenhum resultado" : "Nenhum cliente ainda"}
                     </p>
-                    <p className="text-xs" style={{ color: "#94A3B8" }}>
+                    <p className="text-xs" style={{ color: "#9da3b4" }}>
                       {hasFilters ? "Ajuste os filtros ou limpe a busca." : "Clique em \"Novo cliente\" para começar."}
                     </p>
                   </td>
@@ -569,7 +545,6 @@ export default function ClientesPage() {
                 displayCustomers.map((c, idx) => {
                   const av      = avColor(c.name);
                   const hovered = hoveredRow === c.id;
-                  const sel     = selectedRows.has(c.id);
                   return (
                     <tr
                       key={c.id}
@@ -577,24 +552,13 @@ export default function ClientesPage() {
                       onMouseEnter={() => setHoveredRow(c.id)}
                       onMouseLeave={() => setHoveredRow(null)}
                       style={{
-                        borderBottom: idx < displayCustomers.length - 1 ? "1px solid #F8FAFC" : "none",
-                        background: sel ? "#F5F8FF" : hovered ? "#FAFBFF" : "#fff",
-                        borderLeft: `3px solid ${sel ? "#1D4ED8" : hovered ? "#93C5FD" : "transparent"}`,
+                        borderBottom: idx < displayCustomers.length - 1 ? "1px solid #f8f9fc" : "none",
+                        background: hovered ? "#FAFBFF" : "#fff",
+                        borderLeft: `3px solid ${hovered ? "#93C5FD" : "transparent"}`,
                         transition: "background 0.1s ease, border-left-color 0.12s ease",
                         animationDelay: `${idx * 35}ms`,
                       }}
                     >
-                      {/* Checkbox */}
-                      <td className="px-4 py-3.5">
-                        <button
-                          onClick={() => toggleSelect(c.id)}
-                          className="w-4 h-4 rounded flex items-center justify-center"
-                          style={{ border: `1.5px solid ${sel ? "#1D4ED8" : "#CBD5E1"}`, background: sel ? "#1D4ED8" : "#fff", cursor: "pointer" }}
-                        >
-                          {sel && <span className="text-white" style={{ fontSize: "9px", lineHeight: 1 }}>✓</span>}
-                        </button>
-                      </td>
-
                       {/* Nome */}
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
@@ -602,7 +566,7 @@ export default function ClientesPage() {
                             {initials(c.name)}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium text-sm truncate" style={{ color: "#0F172A", maxWidth: "160px" }}>{c.name}</p>
+                            <p className="font-medium text-sm truncate" style={{ color: "#1a1d2e", maxWidth: "160px" }}>{c.name}</p>
                           </div>
                         </div>
                       </td>
@@ -615,11 +579,11 @@ export default function ClientesPage() {
                       {/* Location */}
                       <td className="px-4 py-3.5">
                         <p className="text-sm" style={{ color: "#374151" }}>{c.city}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "#94A3B8" }}>{c.state}</p>
+                        <p className="text-xs mt-0.5" style={{ color: "#9da3b4" }}>{c.state}</p>
                       </td>
 
                       {/* Date */}
-                      <td className="px-4 py-3.5 text-xs whitespace-nowrap" style={{ color: "#64748B" }}>
+                      <td className="px-4 py-3.5 text-xs whitespace-nowrap" style={{ color: "#5c6278" }}>
                         {fmtDate(c.createdAt)}
                       </td>
 
@@ -640,7 +604,7 @@ export default function ClientesPage() {
                             title="Visualizar"
                             className="p-2 rounded-lg transition-all"
                             style={{
-                              color: "#1D4ED8",
+                              color: "#3b5bdb",
                               background: hovered ? "#EFF6FF" : "none",
                               border: "none",
                               cursor: "pointer",
@@ -655,7 +619,7 @@ export default function ClientesPage() {
                             title="Editar"
                             className="p-2 rounded-lg transition-all"
                             style={{
-                              color: "#64748B",
+                              color: "#5c6278",
                               background: hovered ? "#F1F5F9" : "none",
                               border: "none",
                               cursor: "pointer",
@@ -692,9 +656,9 @@ export default function ClientesPage() {
         {!loading && total > 0 && (
           <div
             className="flex items-center justify-between px-5 py-3.5 flex-wrap gap-3"
-            style={{ borderTop: "1px solid #EEF2F7" }}
+            style={{ borderTop: "1px solid #e2e6ef" }}
           >
-            <p className="text-xs" style={{ color: "#94A3B8" }}>
+            <p className="text-xs" style={{ color: "#9da3b4" }}>
               Exibindo <strong style={{ color: "#475569" }}>{from}–{to}</strong> de{" "}
               <strong style={{ color: "#475569" }}>{usingSample ? "123" : total}</strong> registros
             </p>
@@ -703,7 +667,7 @@ export default function ClientesPage() {
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium disabled:opacity-40"
-                style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569", cursor: page === 1 ? "not-allowed" : "pointer" }}
+                style={{ background: "#f8f9fc", border: "1px solid #e2e6ef", color: "#475569", cursor: page === 1 ? "not-allowed" : "pointer" }}
               >
                 <ChevronLeft size={14} />
               </button>
@@ -716,19 +680,19 @@ export default function ClientesPage() {
                     key={p}
                     onClick={() => setPage(p)}
                     className="flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium"
-                    style={{ background: active ? "#1D4ED8" : "#F8FAFC", border: `1px solid ${active ? "#1D4ED8" : "#E2E8F0"}`, color: active ? "#fff" : "#475569", cursor: "pointer", boxShadow: active ? "0 2px 8px rgba(29,78,216,0.25)" : "none" }}
+                    style={{ background: active ? "#3b5bdb" : "#f8f9fc", border: `1px solid ${active ? "#3b5bdb" : "#e2e6ef"}`, color: active ? "#fff" : "#475569", cursor: "pointer", boxShadow: active ? "0 2px 8px rgba(29,78,216,0.25)" : "none" }}
                   >
                     {p}
                   </button>
                 );
               })}
-              {totalPages > 5 && <span className="text-xs px-1" style={{ color: "#94A3B8" }}>…</span>}
+              {totalPages > 5 && <span className="text-xs px-1" style={{ color: "#9da3b4" }}>…</span>}
 
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium disabled:opacity-40"
-                style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569", cursor: page === totalPages ? "not-allowed" : "pointer" }}
+                style={{ background: "#f8f9fc", border: "1px solid #e2e6ef", color: "#475569", cursor: page === totalPages ? "not-allowed" : "pointer" }}
               >
                 <ChevronRight size={14} />
               </button>
