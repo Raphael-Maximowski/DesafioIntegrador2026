@@ -4,7 +4,7 @@ from flask import request
 from app.schemas.analytics_schema import CustomerAnalyticsSchema, PaginatedCustomerAnalyticsSchema
 from app.schemas.health_schema import HealthCheckSchema
 
-blp = Blueprint("analytics", __name__, description="Analytics de clientes", url_prefix="/analytics")
+blp = Blueprint("analytics", __name__, description="Analytics de clientes", url_prefix="/api/analytics")
 
 @blp.get("/health")
 @blp.response(200, HealthCheckSchema)

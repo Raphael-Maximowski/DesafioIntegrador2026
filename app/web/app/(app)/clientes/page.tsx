@@ -5,13 +5,17 @@ import { useRouter } from "next/navigation";
 import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight,
   Users, Loader2, AlertTriangle, Eye, X, Calendar, Mail,
-  MapPin, Globe, Clock,
+  MapPin, Globe, Clock, Wallet, BarChart2, ShoppingCart, TrendingDown, Activity,
 } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import type { DateRange } from "react-day-picker";
 import "react-day-picker/style.css";
 import { listCustomers, deleteCustomer } from "@/services/customers";
+import { getClientsDashboard } from "@/services/dashboard";
+import { getCustomerAnalytics } from "@/services/analytics";
 import type { Customer, CustomerQuery } from "@/types/customer";
+import type { ClientsDashboard } from "@/types/dashboard";
+import type { CustomerAnalytics } from "@/types/analytics";
 
 const PAGE_LIMIT = 10;
 
@@ -191,6 +195,24 @@ function DateRangePicker({
   );
 }
 
+/* ── Analytics helpers ── */
+function MetricMini({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
+  return (
+    <div style={{ background: "#f8f9fc", borderRadius: 10, padding: "10px 12px", border: "1px solid #e8eaf0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+        <Icon size={13} style={{ color }} aria-hidden="true" />
+        <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 500 }}>{label}</span>
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1d2e" }}>{value}</div>
+    </div>
+  );
+}
+function riskColors(level: string) {
+  if (level === "Alto")  return { text: "#ef4444", bg: "#fef2f2", bar: "#ef4444" };
+  if (level === "Médio") return { text: "#d97706", bg: "#fffbeb", bar: "#f59e0b" };
+  return { text: "#059669", bg: "#f0fdf4", bar: "#10b981" };
+}
+
 /* ── ViewModal ── */
 function InfoRow({ label, value, icon: Icon, muted }: { label: string; value: string; icon?: React.ElementType; muted?: boolean }) {
   return (
@@ -210,6 +232,20 @@ function InfoRow({ label, value, icon: Icon, muted }: { label: string; value: st
 
 function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(): void; onEdit(): void }) {
   const av = avColor(customer.name);
+  const [analytics,        setAnalytics]        = useState<CustomerAnalytics | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const [analyticsError,   setAnalyticsError]   = useState("");
+
+  useEffect(() => {
+    setLoadingAnalytics(true);
+    setAnalytics(null);
+    setAnalyticsError("");
+    getCustomerAnalytics(customer.id)
+      .then(setAnalytics)
+      .catch(() => setAnalyticsError("Análise indisponível."))
+      .finally(() => setLoadingAnalytics(false));
+  }, [customer.id]);
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
@@ -217,16 +253,17 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="w-full rounded-2xl overflow-hidden"
+        className="w-full rounded-2xl overflow-hidden flex flex-col"
         style={{
-          maxWidth: "440px",
+          maxWidth: "680px",
+          maxHeight: "90vh",
           background: "#fff",
           border: "1px solid #e2e6ef",
           boxShadow: "0 24px 64px rgba(15,23,42,0.2)",
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
+        <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: "1px solid #F1F5F9" }}>
           <p className="text-sm font-semibold" style={{ color: "#1a1d2e" }}>Detalhes do cliente</p>
           <button
             onClick={onClose}
@@ -237,41 +274,107 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
           </button>
         </div>
 
-        {/* Avatar + name */}
-        <div className="px-6 pt-5 pb-4">
-          <div className="flex items-center gap-4">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-base font-bold shrink-0"
-              style={{ background: av.bg, color: av.text }}
-            >
-              {initials(customer.name)}
-            </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-base leading-tight" style={{ color: "#1a1d2e" }}>{customer.name}</p>
-              <div className="mt-1.5">
-                <StatusBadge createdAt={customer.createdAt} />
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x" style={{ borderColor: "#F1F5F9" }}>
+
+            {/* Left — customer info */}
+            <div>
+              {/* Avatar + name */}
+              <div className="px-6 pt-5 pb-4">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-base font-bold shrink-0"
+                    style={{ background: av.bg, color: av.text }}
+                  >
+                    {initials(customer.name)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-base leading-tight" style={{ color: "#1a1d2e" }}>{customer.name}</p>
+                    <div className="mt-1.5">
+                      <StatusBadge createdAt={customer.createdAt} />
+                    </div>
+                  </div>
+                </div>
               </div>
+              {/* Info rows */}
+              <div className="px-6 pb-4">
+                <InfoRow label="E-mail"        value={customer.email}              icon={Mail}    />
+                <InfoRow label="Cidade"        value={customer.city}               icon={MapPin}  />
+                <InfoRow label="Estado"        value={customer.state}              icon={MapPin}  />
+                <InfoRow label="País"          value={customer.country}            icon={Globe}   />
+                <InfoRow label="Cadastrado em" value={fmtDateTime(customer.createdAt)} icon={Clock} />
+                <InfoRow
+                  label="Atualizado em"
+                  value={customer.updatedAt !== customer.createdAt ? fmtDateTime(customer.updatedAt) : "Nenhuma alteração registrada"}
+                  icon={Clock}
+                  muted={customer.updatedAt === customer.createdAt}
+                />
+              </div>
+            </div>
+
+            {/* Right — analytics */}
+            <div className="px-6 py-5">
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <BarChart2 size={15} style={{ color: "#6366f1" }} aria-hidden="true" />
+                <span style={{ fontWeight: 700, fontSize: 13, color: "#1a1d2e" }}>Análise preditiva</span>
+                <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 700, letterSpacing: 1, color: "#6366f1", background: "#eef2ff", borderRadius: 20, padding: "2px 7px" }}>IA</span>
+              </div>
+
+              {loadingAnalytics && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[90, 60, 75, 100].map((w, i) => (
+                    <div key={i} className="animate-pulse" style={{ height: 12, width: `${w}%`, background: "#e8eaf0", borderRadius: 6 }} />
+                  ))}
+                </div>
+              )}
+
+              {!loadingAnalytics && analyticsError && (
+                <div style={{ fontSize: 12, color: "#9ca3af", textAlign: "center", padding: "20px 0" }}>
+                  <Activity size={24} style={{ color: "#d1d5db", margin: "0 auto 8px", display: "block" }} aria-hidden="true" />
+                  {analyticsError}
+                </div>
+              )}
+
+              {!loadingAnalytics && analytics && (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 16 }}>
+                    <MetricMini label="Pedidos"       value={analytics.metrics.total_orders} icon={ShoppingCart} color="#3b82f6" />
+                    <MetricMini label="Total gasto"   value={`R$ ${analytics.metrics.total_spent.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} icon={TrendingDown} color="#10b981" />
+                    <MetricMini label="Ticket médio"  value={`R$ ${analytics.metrics.avg_ticket.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} icon={BarChart2} color="#8b5cf6" />
+                    <MetricMini label="Dias s/ compra" value={analytics.metrics.days_since_last_order} icon={Activity} color="#f59e0b" />
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>Risco de churn</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: riskColors(analytics.risk_level).text, background: riskColors(analytics.risk_level).bg, borderRadius: 20, padding: "2px 7px" }}>
+                        {analytics.risk_level}
+                      </span>
+                    </div>
+                    <div style={{ height: 7, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.round(analytics.churn_probability * 100)}%`, background: riskColors(analytics.risk_level).bar, borderRadius: 99, transition: "width 0.6s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 3 }}>{Math.round(analytics.churn_probability * 100)}% de probabilidade</div>
+                  </div>
+
+                  <div>
+                    <div style={{ marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>Probabilidade de recompra</span>
+                    </div>
+                    <div style={{ height: 7, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.round(analytics.purchase_probability * 100)}%`, background: "#6366f1", borderRadius: 99, transition: "width 0.6s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 3 }}>{Math.round(analytics.purchase_probability * 100)}% de probabilidade</div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Info rows */}
-        <div className="px-6 pb-2">
-          <InfoRow label="E-mail"        value={customer.email}              icon={Mail}    />
-          <InfoRow label="Cidade"        value={customer.city}               icon={MapPin}  />
-          <InfoRow label="Estado"        value={customer.state}              icon={MapPin}  />
-          <InfoRow label="País"          value={customer.country}            icon={Globe}   />
-          <InfoRow label="Cadastrado em" value={fmtDateTime(customer.createdAt)} icon={Clock} />
-          <InfoRow
-            label="Atualizado em"
-            value={customer.updatedAt !== customer.createdAt ? fmtDateTime(customer.updatedAt) : "Nenhuma alteração registrada"}
-            icon={Clock}
-            muted={customer.updatedAt === customer.createdAt}
-          />
-        </div>
-
         {/* Footer */}
-        <div className="flex items-center gap-2 px-6 py-4" style={{ borderTop: "1px solid #F1F5F9" }}>
+        <div className="flex items-center gap-2 px-6 py-4 shrink-0" style={{ borderTop: "1px solid #F1F5F9" }}>
           <button
             onClick={onClose}
             className="flex-1 py-2.5 text-sm font-medium rounded-xl"
@@ -282,13 +385,7 @@ function ViewModal({ customer, onClose, onEdit }: { customer: Customer; onClose(
           <button
             onClick={onEdit}
             className="flex-1 py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2"
-            style={{
-              background: "#3b5bdb",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(29,78,216,0.28)",
-            }}
+            style={{ background: "#3b5bdb", color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 4px 12px rgba(29,78,216,0.28)" }}
           >
             <Pencil size={13} />
             Editar
@@ -341,8 +438,16 @@ export default function ClientesPage() {
   const [error,         setError]         = useState("");
   const [hoveredRow,    setHoveredRow]    = useState<string | null>(null);
   const [usingSample,   setUsingSample]   = useState(false);
+  const [clientsDash,   setClientsDash]   = useState<ClientsDashboard | null>(null);
+  const [loadingDash,   setLoadingDash]   = useState(true);
 
   const debouncedSearch = useDebounce(search, 400);
+
+  useEffect(() => {
+    getClientsDashboard()
+      .then(setClientsDash)
+      .finally(() => setLoadingDash(false));
+  }, []);
 
   const fetchCustomers = useCallback(async (q: CustomerQuery) => {
     setLoading(true);
@@ -437,6 +542,40 @@ export default function ClientesPage() {
           <span className="hidden sm:inline">Novo cliente</span>
           <span className="sm:hidden">Novo</span>
         </button>
+      </div>
+
+      {/* ── Dashboard stats ── */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        {[
+          {
+            label: "Total de clientes",
+            value: loadingDash ? null : (clientsDash?.totalClients ?? 0).toLocaleString("pt-BR"),
+            icon: Users,
+            iconBg: "#EFF6FF",
+            iconColor: "#3b5bdb",
+          },
+          {
+            label: "LTV mediano",
+            value: loadingDash ? null : (clientsDash?.medianLtv ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+            icon: Wallet,
+            iconBg: "#FEFCE8",
+            iconColor: "#A16207",
+          },
+        ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
+          <div key={label} className="rounded-2xl p-4 flex items-center gap-3"
+            style={{ background: "#fff", border: "1px solid #e2e6ef", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+              <Icon size={16} style={{ color: iconColor }} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium mb-0.5" style={{ color: "#9da3b4" }}>{label}</p>
+              {value === null
+                ? <div className="h-5 w-20 rounded" style={{ background: "#e2e6ef", animation: "pulse 1.5s ease-in-out infinite" }} />
+                : <p className="text-base font-bold" style={{ color: "#1a1d2e" }}>{value}</p>
+              }
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ── Search ── */}

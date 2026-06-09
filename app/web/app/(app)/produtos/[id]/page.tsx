@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Package, Box, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { getProduct, updateProduct, listCategories } from "@/services/products";
+import { getProduct, updateProduct, listCategories, listProducts } from "@/services/products";
 import CategoryPicker from "@/components/products/CategoryPicker";
 import { sanitizeDecimal, sanitizeInteger, onDecimalKeyDown, onNumericKeyDown } from "@/lib/formUtils";
 import type { Product, Category } from "@/types/product";
@@ -140,6 +140,14 @@ export default function EditarProdutoPage() {
   async function onSubmit(data: FormData) {
     setLoading(true); setApiError(""); setSaved(false);
     try {
+      const existing = await listProducts({ name: data.name.trim(), limit: 10 });
+      const duplicate = existing.data.some(
+        p => p.name.toLowerCase() === data.name.trim().toLowerCase() && p.id !== id
+      );
+      if (duplicate) {
+        setApiError("Já existe um produto com este nome.");
+        return;
+      }
       await updateProduct(id, {
         name:       data.name,
         price:      parseFloat(data.price),

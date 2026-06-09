@@ -5,9 +5,10 @@ from sqlalchemy import func
 def _empty_metrics():
     return {
         "total_orders": 0,
-        "total_spent": 0,
-        "avg_ticket": 0,
-        "days_since_last_order": None
+        "total_spent": 0.0,
+        "avg_ticket": 0.0,
+        "days_since_last_order": 0,
+        "frequency": 0.0,
     }
 
 def get_orders_by_customer(customer_id):

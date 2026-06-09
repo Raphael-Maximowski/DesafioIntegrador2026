@@ -51,7 +51,8 @@ def predict_churn_probability(metrics):
         metrics[col] for col in FEATURE_COLUMNS
     ]], columns=FEATURE_COLUMNS)
 
-    return round(float(model.predict_proba(features)[0][1]), 4)
+    proba = model.predict_proba(features)[0]
+    return round(float(proba[1] if len(proba) > 1 else 0.0), 4)
 
 
 def predict_purchase_probability(metrics):
@@ -69,7 +70,8 @@ def predict_purchase_probability(metrics):
         metrics[col] for col in FEATURE_COLUMNS
     ]], columns=FEATURE_COLUMNS)
 
-    return round(float(model.predict_proba(features)[0][1]), 4)
+    proba = model.predict_proba(features)[0]
+    return round(float(proba[1] if len(proba) > 1 else 0.0), 4)
 
 
 def get_customer_metrics(customer_id):
@@ -78,7 +80,12 @@ def get_customer_metrics(customer_id):
     if not orders:
         return {
             "customer_id": customer_id,
-            "metrics": _empty_metrics()
+            "metrics": _empty_metrics(),
+            "churn_probability": 0.0,
+            "churn_score": 0.0,
+            "risk_level": "Baixo",
+            "purchase_probability": 0.0,
+            "purchase_score": 0.0,
         }
 
     total_orders = len(orders)
@@ -96,8 +103,12 @@ def get_customer_metrics(customer_id):
         "frequency": round(frequency, 2)
     }
 
-    churn_prob = predict_churn_probability(metrics)
-    purchase_prob = predict_purchase_probability(metrics)
+    try:
+        churn_prob = predict_churn_probability(metrics)
+        purchase_prob = predict_purchase_probability(metrics)
+    except (FileNotFoundError, IndexError, ValueError):
+        churn_prob = 0.0
+        purchase_prob = 0.0
 
     return {
         "customer_id": customer_id,
@@ -106,7 +117,7 @@ def get_customer_metrics(customer_id):
         "churn_score": round(churn_prob * 100, 2),
         "risk_level": classify_risk(churn_prob),
         "purchase_probability": purchase_prob,
-        "purchase_score": round(purchase_prob * 100, 2)
+        "purchase_score": round(purchase_prob * 100, 2),
     }
 
 
@@ -118,18 +129,21 @@ def get_all_customers_metrics(page=1, per_page=20):
     for row in results:
         metrics = build_metrics(row)
 
-        churn_prob = predict_churn_probability(metrics)
-        purchase_prob = predict_purchase_probability(metrics)
+        try:
+            churn_prob = predict_churn_probability(metrics)
+            purchase_prob = predict_purchase_probability(metrics)
+        except (FileNotFoundError, IndexError, ValueError):
+            churn_prob = 0.0
+            purchase_prob = 0.0
 
         customers.append({
             "customer_id": row.customer_id,
             "metrics": metrics,
             "churn_probability": churn_prob,
-            "purchase_probability": purchase_prob,
             "churn_score": round(churn_prob * 100, 2),
+            "risk_level": classify_risk(churn_prob),
+            "purchase_probability": purchase_prob,
             "purchase_score": round(purchase_prob * 100, 2),
-            "days_since_last_order": metrics["days_since_last_order"],
-            "frequency": metrics["frequency"]
         })
 
     return {

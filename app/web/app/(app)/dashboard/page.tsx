@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie, Cell, ResponsiveContainer, Legend,
+  ResponsiveContainer,
 } from "recharts";
 import { DayPicker } from "react-day-picker";
 import type { DateRange } from "react-day-picker";
@@ -40,8 +40,7 @@ function fmtShort(d: Date) {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-/* ── Pie colors ── */
-const PIE_COLORS = ["#3b5bdb", "#7C3AED", "#0E7490", "#15803D", "#B45309", "#9da3b4"];
+const CAT_COLORS = ["#3b5bdb", "#7C3AED", "#0E7490", "#15803D", "#B45309", "#C2410C", "#0369A1", "#6D28D9"];
 
 /* ── KPI Card ── */
 interface KpiCardProps {
@@ -181,11 +180,7 @@ export default function DashboardPage() {
     total: m.total,
   }));
 
-  const pieData = (overview?.categories ?? []).map((c, i) => ({
-    name: c.label,
-    value: c.amount,
-    color: PIE_COLORS[i % PIE_COLORS.length],
-  }));
+  const catList = (overview?.categories ?? []).slice().sort((a, b) => b.amount - a.amount);
 
   const customLabel = customRange?.from
     ? customRange.to
@@ -344,29 +339,43 @@ export default function DashboardPage() {
           </Section>
         </div>
 
-        {/* Categories donut (40%) */}
+        {/* Categories list (40%) */}
         <div className="lg:col-span-2">
           <Section title="Receita por categoria">
             {loadingOv ? (
-              <div className="skeleton-shimmer rounded-xl" style={{ height: "220px" }} />
-            ) : pieData.length === 0 ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => <div key={i} className="skeleton-shimmer h-8 rounded-xl" style={{ animationDelay: `${i * 60}ms` }} />)}
+              </div>
+            ) : catList.length === 0 ? (
               <div className="flex items-center justify-center" style={{ height: "220px" }}>
                 <p className="text-xs" style={{ color: "#CBD5E1" }}>Sem dados</p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
-                    dataKey="value" paddingAngle={2}>
-                    {pieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v) => fmtCurrencyFull(Number(v))} />
-                  <Legend iconType="circle" iconSize={8}
-                    formatter={v => <span style={{ fontSize: "11px", color: "#5c6278" }}>{v}</span>} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="space-y-3" style={{ maxHeight: 220, overflowY: "auto" }}>
+                {catList.map((c, i) => (
+                  <div key={c.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ background: CAT_COLORS[i % CAT_COLORS.length] }}
+                        />
+                        <span className="text-sm font-medium truncate" style={{ color: "#1a1d2e", maxWidth: 130 }}>{c.label}</span>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        <span className="text-sm font-semibold" style={{ color: "#1a1d2e" }}>{fmtCurrency(c.amount)}</span>
+                        <span className="text-xs ml-2" style={{ color: "#9da3b4" }}>{c.percentage.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#F1F5F9" }}>
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${c.percentage}%`, background: CAT_COLORS[i % CAT_COLORS.length] }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </Section>
         </div>

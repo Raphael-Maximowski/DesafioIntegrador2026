@@ -1,7 +1,7 @@
 from flask_smorest import Blueprint
 from app.services.ml_service import train_models
 
-blp = Blueprint("train", __name__, description="Treinamento de modelos de machine learning", url_prefix="/train")
+blp = Blueprint("train", __name__, description="Treinamento de modelos de machine learning", url_prefix="/api/train")
 
 @blp.post("/model")
 @blp.response(200, description="Modelo treinado com sucesso")

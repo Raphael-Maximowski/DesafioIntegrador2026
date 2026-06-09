@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight,
   Package, Loader2, AlertTriangle, Eye, X, Tag, Box,
-  Mail, Clock,
+  Mail, Clock, Wallet,
 } from "lucide-react";
 import { listProducts, deleteProduct, listCategories } from "@/services/products";
+import { getProductsDashboard } from "@/services/dashboard";
 import type { Product, Category, ProductQuery } from "@/types/product";
+import type { ProductsDashboard } from "@/types/dashboard";
 
 const PAGE_LIMIT = 10;
 
@@ -211,6 +213,14 @@ export default function ProdutosPage() {
   const [error,         setError]         = useState("");
   const [hoveredRow,    setHoveredRow]    = useState<string | null>(null);
   const [usingSample,   setUsingSample]   = useState(false);
+  const [productsDash,  setProductsDash]  = useState<ProductsDashboard | null>(null);
+  const [loadingDash,   setLoadingDash]   = useState(true);
+
+  useEffect(() => {
+    getProductsDashboard()
+      .then(setProductsDash)
+      .finally(() => setLoadingDash(false));
+  }, []);
 
   const debouncedSearch = useDebounce(search, 400);
 
@@ -299,6 +309,54 @@ export default function ProdutosPage() {
           <span className="hidden sm:inline">Novo produto</span>
           <span className="sm:hidden">Novo</span>
         </button>
+      </div>
+
+      {/* ── Dashboard stats ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {[
+          {
+            label: "Total em estoque",
+            value: loadingDash ? null : (productsDash?.totalStock ?? 0).toLocaleString("pt-BR") + " un.",
+            icon: Package,
+            iconBg: "#ECFEFF",
+            iconColor: "#0E7490",
+          },
+          {
+            label: "Valor em estoque",
+            value: loadingDash ? null : (productsDash?.totalStockValue ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }),
+            icon: Wallet,
+            iconBg: "#F0FDF4",
+            iconColor: "#15803D",
+          },
+          {
+            label: "Itens estoque baixo",
+            value: loadingDash ? null : String(productsDash?.lowStockCount ?? 0),
+            icon: AlertTriangle,
+            iconBg: "#FEF2F2",
+            iconColor: "#DC2626",
+          },
+          {
+            label: "Categorias ativas",
+            value: loadingDash ? null : String(productsDash?.activeCategories ?? 0),
+            icon: Tag,
+            iconBg: "#FDF4FF",
+            iconColor: "#7C3AED",
+          },
+        ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
+          <div key={label} className="rounded-2xl p-4 flex items-center gap-3"
+            style={{ background: "#fff", border: "1px solid #e2e6ef", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+              <Icon size={16} style={{ color: iconColor }} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium mb-0.5" style={{ color: "#9da3b4" }}>{label}</p>
+              {value === null
+                ? <div className="h-5 w-20 rounded" style={{ background: "#e2e6ef", animation: "pulse 1.5s ease-in-out infinite" }} />
+                : <p className="text-base font-bold truncate" style={{ color: "#1a1d2e" }}>{value}</p>
+              }
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ── Search ── */}

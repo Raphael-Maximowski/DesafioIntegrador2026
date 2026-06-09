@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Package, DollarSign, Box, ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { createProduct, listCategories } from "@/services/products";
+import { createProduct, listCategories, listProducts } from "@/services/products";
 import CategoryPicker from "@/components/products/CategoryPicker";
 import { sanitizeDecimal, sanitizeInteger, onDecimalKeyDown, onNumericKeyDown } from "@/lib/formUtils";
 import type { Category } from "@/types/product";
@@ -18,7 +18,7 @@ const schema = z.object({
   price: z.string()
     .min(1, "Preço obrigatório")
     .refine(v => /^\d+(\.\d{1,2})?$/.test(v.trim()) && parseFloat(v) > 0, "Preço deve ser maior que 0")
-    .refine(v => parseFloat(v) < 999999, "Preço deve ser menor que 999.999"),
+    .refine(v => parseFloat(v) < 9999999, "Preço deve ser menor que 999.999"),
   stock: z.string()
     .min(1, "Estoque obrigatório")
     .refine(v => /^\d+$/.test(v.trim()), "Deve ser número inteiro")
@@ -127,6 +127,12 @@ export default function NovoProdutoPage() {
     setLoading(true);
     setApiError("");
     try {
+      const existing = await listProducts({ name: data.name.trim(), limit: 10 });
+      const duplicate = existing.data.some(p => p.name.toLowerCase() === data.name.trim().toLowerCase());
+      if (duplicate) {
+        setApiError("Já existe um produto com este nome.");
+        return;
+      }
       await createProduct({
         name:       data.name,
         price:      parseFloat(data.price),

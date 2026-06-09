@@ -6,16 +6,17 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Users, LayoutDashboard, LogOut,
   Package, ShoppingCart, PanelLeftClose, PanelLeftOpen,
-  BarChart3, Menu, X,
+  BarChart3, Menu, X, Brain,
 } from "lucide-react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { useAuthStore } from "@/store/authStore";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/clientes",  label: "Clientes",  icon: Users },
-  { href: "/produtos",  label: "Produtos",  icon: Package },
-  { href: "/pedidos",   label: "Pedidos",   icon: ShoppingCart },
+  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/clientes",   label: "Clientes",   icon: Users },
+  { href: "/produtos",   label: "Produtos",   icon: Package },
+  { href: "/pedidos",    label: "Pedidos",    icon: ShoppingCart },
+  { href: "/analytics",  label: "Analytics",  icon: Brain },
 ];
 
 function getInitials(name: string) {

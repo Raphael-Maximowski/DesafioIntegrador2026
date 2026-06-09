@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Ban, Plus, Loader2, X, Check, Trash2 } from "lucide-react";
-import { createCategory, deleteCategory } from "@/services/products";
+import { createCategory, deleteCategory, listCategories } from "@/services/products";
 import type { Category } from "@/types/product";
 
 const CAT_COLORS = [
@@ -46,7 +46,10 @@ export default function CategoryPicker({ categories, value, onChange, onCategory
     setSaving(true);
     setCreateError("");
     try {
-      const cat = await createCategory({ name, description: "" });
+      const existing = await listCategories({ name, limit: 5 });
+      const apiDuplicate = existing.data.some(c => c.name.toLowerCase() === name.toLowerCase());
+      if (apiDuplicate) { setCreateError("Já existe uma categoria com esse nome."); return; }
+      const cat = await createCategory({ name, description: name });
       onCategoryCreated?.(cat);
       onChange(cat.id);
       setCreating(false);
