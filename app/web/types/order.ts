@@ -3,7 +3,6 @@ import type { Product } from "./product";
 
 export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "CANCELLED";
 
-export const ORDER_STATUSES: OrderStatus[] = ["PENDING", "PAID", "SHIPPED", "CANCELLED"];
 
 export interface OrderItem {
   id: string;

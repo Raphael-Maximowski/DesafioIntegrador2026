@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight,
-  ShoppingCart, Loader2, AlertTriangle, Eye, X, Calendar,
+  ShoppingCart, Loader2, AlertTriangle, Eye, X,
   User, Package, Clock,
 } from "lucide-react";
-import { DayPicker } from "react-day-picker";
-import type { DateRange } from "react-day-picker";
-import "react-day-picker/style.css";
 import { listOrders, deleteOrder } from "@/services/orders";
 import type { Order, OrderQuery, OrderStatus } from "@/types/order";
 
@@ -34,9 +31,6 @@ function fmtDate(iso: string) {
 function fmtDateTime(iso: string) {
   const d = new Date(iso);
   return `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
-}
-function fmtShort(d: Date) {
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 function shortId(id: string) {
   return id.slice(0, 8).toUpperCase();
@@ -71,48 +65,6 @@ function SkeletonRow({ delay }: { delay: number }) {
         </td>
       ))}
     </tr>
-  );
-}
-
-/* ── DateRangePicker ── */
-function DateRangePicker({ value, onChange }: { value: DateRange | undefined; onChange: (r: DateRange | undefined) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-  const label = value?.from
-    ? value.to ? `${fmtShort(value.from)} → ${fmtShort(value.to)}` : fmtShort(value.from)
-    : "Período";
-  const active = !!value?.from;
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button type="button" onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 rounded-xl text-xs font-medium transition-all"
-        style={{ height: "36px", background: active ? "#EFF6FF" : "#fff", border: `1.5px solid ${open || active ? "#1D4ED8" : "#E2E8F0"}`, color: active ? "#1D4ED8" : "#64748B", cursor: "pointer", whiteSpace: "nowrap", boxShadow: open ? "0 0 0 3px rgba(29,78,216,0.1)" : "none" }}>
-        <Calendar size={13} />
-        {label}
-        {active && (
-          <span role="button" onClick={e => { e.stopPropagation(); onChange(undefined); }} className="flex items-center" style={{ color: "#94A3B8", cursor: "pointer" }}>
-            <X size={12} />
-          </span>
-        )}
-      </button>
-      {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200, background: "#fff", border: "1px solid #E2E8F0", borderRadius: "16px", boxShadow: "0 8px 32px rgba(15,23,42,0.14)", padding: "12px" }}>
-          <DayPicker mode="range" selected={value} onSelect={r => { onChange(r); if (r?.from && r?.to) setOpen(false); }} />
-          {value?.from && (
-            <div style={{ textAlign: "right", paddingTop: "8px", borderTop: "1px solid #F1F5F9" }}>
-              <button type="button" onClick={() => { onChange(undefined); setOpen(false); }} style={{ fontSize: "12px", color: "#94A3B8", background: "none", border: "none", cursor: "pointer" }}>Limpar</button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -218,7 +170,6 @@ export default function PedidosPage() {
   const [search,        setSearch]        = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [statusFilter,  setStatusFilter]  = useState<OrderStatus | "">("");
-  const [dateRange,     setDateRange]     = useState<DateRange | undefined>();
   const [viewTarget,    setViewTarget]    = useState<Order | null>(null);
   const [deleteTarget,  setDeleteTarget]  = useState<Order | null>(null);
   const [deleting,      setDeleting]      = useState(false);
@@ -230,14 +181,8 @@ export default function PedidosPage() {
   const buildQuery = useCallback((): OrderQuery => {
     const q: OrderQuery = { page, limit: PAGE_LIMIT };
     if (statusFilter) q.status = statusFilter;
-    if (dateRange?.from) q.createdAtFrom = dateRange.from.toISOString();
-    if (dateRange?.to) {
-      const end = new Date(dateRange.to);
-      end.setHours(23, 59, 59, 999);
-      q.createdAtTo = end.toISOString();
-    }
     return q;
-  }, [page, statusFilter, dateRange]);
+  }, [page, statusFilter]);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -254,7 +199,7 @@ export default function PedidosPage() {
   }, [buildQuery]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
-  useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, dateRange]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -273,7 +218,6 @@ export default function PedidosPage() {
   function clearFilters() {
     setSearch("");
     setStatusFilter("");
-    setDateRange(undefined);
     setPage(1);
   }
 
@@ -282,7 +226,7 @@ export default function PedidosPage() {
     ? orders.filter(o => o.customer.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     : orders;
 
-  const hasFilters = !!(search || statusFilter || dateRange?.from);
+  const hasFilters = !!(search || statusFilter);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
   const from = total === 0 ? 0 : (page - 1) * PAGE_LIMIT + 1;
   const to   = Math.min(page * PAGE_LIMIT, total);
@@ -331,9 +275,6 @@ export default function PedidosPage() {
             <option value="CANCELLED">Cancelado</option>
           </select>
         </div>
-
-        <div className="h-6 w-px shrink-0" style={{ background: "#E2E8F0" }} />
-        <DateRangePicker value={dateRange} onChange={setDateRange} />
 
         {hasFilters && (
           <>

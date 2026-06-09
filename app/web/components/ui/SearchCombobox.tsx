@@ -5,7 +5,6 @@ import { Search, Loader2, X } from "lucide-react";
 
 interface SearchComboboxProps<T> {
   placeholder?: string;
-  selectedLabel?: string;
   onSearch: (query: string) => Promise<T[]>;
   onSelect: (item: T) => void;
   onClear?: () => void;

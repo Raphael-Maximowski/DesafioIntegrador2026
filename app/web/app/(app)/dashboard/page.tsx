@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { DayPicker } from "react-day-picker";
-import type { DateRange } from "react-day-picker";
-import "react-day-picker/style.css";
 import {
   TrendingUp, ShoppingCart, Users, Package,
-  AlertTriangle, Tag, Wallet, Calendar, X,
+  AlertTriangle, Tag, Wallet,
 } from "lucide-react";
 import { getOverview, getProductsDashboard, getClientsDashboard } from "@/services/dashboard";
 import { listProducts } from "@/services/products";
@@ -36,10 +33,6 @@ function fmtCurrencyFull(v: number) {
 function fmtNumber(v: number) {
   return v.toLocaleString("pt-BR");
 }
-function fmtShort(d: Date) {
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-}
-
 const CAT_COLORS = ["#3b5bdb", "#7C3AED", "#0E7490", "#15803D", "#B45309", "#C2410C", "#0369A1", "#6D28D9"];
 
 /* ── KPI Card ── */
@@ -89,8 +82,7 @@ function RangePill({ label, active, onClick }: { label: string; active: boolean;
       style={{
         background: active ? "#3b5bdb" : "#F1F5F9",
         color: active ? "#fff" : "#5c6278",
-        border: "none",
-        cursor: "pointer",
+        border: "none", cursor: "pointer",
         boxShadow: active ? "0 2px 8px rgba(29,78,216,0.25)" : "none",
       }}>
       {label}
@@ -115,8 +107,6 @@ export default function DashboardPage() {
   const [products,   setProducts]   = useState<ProductsDashboard | null>(null);
   const [clients,    setClients]    = useState<ClientsDashboard | null>(null);
   const [range,      setRange]      = useState<DashboardDateRange>("30d");
-  const [customRange,setCustomRange]= useState<DateRange | undefined>();
-  const [showPicker, setShowPicker] = useState(false);
   const [loadingOv,  setLoadingOv]  = useState(true);
   const [loadingPr,  setLoadingPr]  = useState(true);
   const [error,      setError]      = useState("");
@@ -124,30 +114,15 @@ export default function DashboardPage() {
   const [lowStockItems,   setLowStockItems]   = useState<Product[]>([]);
   const [loadingLowStock, setLoadingLowStock] = useState(false);
   const [lowStockError,   setLowStockError]   = useState("");
-  const pickerRef = useRef<HTMLDivElement>(null);
-
-  /* Close picker on outside click */
-  useEffect(() => {
-    function h(e: MouseEvent) {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false);
-    }
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, []);
 
   /* Fetch overview on range change */
   useEffect(() => {
     setLoadingOv(true);
-    const q: Parameters<typeof getOverview>[0] = { range };
-    if (range === "custom" && customRange?.from) {
-      q.startedAt  = customRange.from.toISOString();
-      q.finishedAt = (customRange.to ?? customRange.from).toISOString();
-    }
-    getOverview(q)
+    getOverview({ range })
       .then(setOverview)
       .catch(() => setError("Erro ao carregar overview."))
       .finally(() => setLoadingOv(false));
-  }, [range, customRange]);
+  }, [range]);
 
   /* Fetch products + clients once */
   useEffect(() => {
@@ -182,12 +157,6 @@ export default function DashboardPage() {
 
   const catList = (overview?.categories ?? []).slice().sort((a, b) => b.amount - a.amount);
 
-  const customLabel = customRange?.from
-    ? customRange.to
-      ? `${fmtShort(customRange.from)} → ${fmtShort(customRange.to)}`
-      : fmtShort(customRange.from)
-    : "Personalizado";
-
   return (
     <div className="p-4 sm:p-6 lg:p-8 min-h-full" style={{ background: "#f8f9fc" }}>
 
@@ -197,48 +166,15 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "#1a1d2e" }}>Dashboard</h1>
           <p className="text-sm mt-0.5" style={{ color: "#5c6278" }}>Visão geral do negócio</p>
         </div>
-
-        {/* Range selector */}
         <div className="flex items-center gap-2 flex-wrap">
           {(["30d", "6m", "year"] as DashboardDateRange[]).map(r => (
             <RangePill
               key={r}
               label={r === "30d" ? "30 dias" : r === "6m" ? "6 meses" : "Este ano"}
               active={range === r}
-              onClick={() => { setRange(r); setCustomRange(undefined); }}
+              onClick={() => setRange(r)}
             />
           ))}
-
-          {/* Custom range */}
-          <div ref={pickerRef} style={{ position: "relative" }}>
-            <button type="button"
-              onClick={() => { setRange("custom"); setShowPicker(p => !p); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={{
-                background: range === "custom" ? "#3b5bdb" : "#F1F5F9",
-                color: range === "custom" ? "#fff" : "#5c6278",
-                border: "none", cursor: "pointer",
-                boxShadow: range === "custom" ? "0 2px 8px rgba(29,78,216,0.25)" : "none",
-              }}>
-              <Calendar size={12} />
-              {range === "custom" ? customLabel : "Personalizado"}
-              {range === "custom" && customRange?.from && (
-                <span onClick={e => { e.stopPropagation(); setCustomRange(undefined); setRange("30d"); }}
-                  className="flex items-center" style={{ cursor: "pointer", color: "rgba(255,255,255,0.7)" }}>
-                  <X size={11} />
-                </span>
-              )}
-            </button>
-            {showPicker && (
-              <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e6ef", borderRadius: "16px", boxShadow: "0 8px 32px rgba(15,23,42,0.14)", padding: "12px" }}>
-                <DayPicker mode="range" selected={customRange}
-                  onSelect={r => {
-                    setCustomRange(r);
-                    if (r?.from && r?.to) setShowPicker(false);
-                  }} />
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
