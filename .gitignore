@@ -24,3 +24,5 @@ media/
 artifacts/
 
 .claude
+
+packages/api-flask/models.pkl
