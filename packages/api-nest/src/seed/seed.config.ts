@@ -5,12 +5,12 @@ export const SEED_CONFIG = {
 
   categories: 12,
   products: 120,
-  customers: 300,
+  customers: 8000,
 
   orderlessRatio: 0.25,
 
   monthsBack: 12,
-  orders: 1500,
+  orders: 16000,
   itemsPerOrder: { min: 1, max: 5 },
   quantityPerItem: { min: 1, max: 6 },
 

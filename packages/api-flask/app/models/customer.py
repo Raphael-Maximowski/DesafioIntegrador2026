@@ -11,5 +11,5 @@ class Customer (db.Model):
     city = db.Column(db.String(255), nullable=True)
     state = db.Column(db.String(255), nullable=True)
     country = db.Column(db.String(255), nullable=True)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    created_at = db.Column("createdAt", db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column("updatedAt", db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())

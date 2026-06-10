@@ -7,16 +7,18 @@ class CustomerMetricsSchema(Schema):
     frequency = fields.Float(required=True)
 
 class CustomerAnalyticsSchema(Schema):
-    customer_id = fields.UUID(required=True)
-    metrics = fields.Nested(CustomerMetricsSchema, required=True)
     churn_probability = fields.Float(required=True)
-    churn_score = fields.Str(required=True)
-    risk_level = fields.Str(required=True)
-    purchase_probability = fields.Float(required=True)
-    purchase_score = fields.Str(required=True)
+    score = fields.Float(required=True)
+
+class CustomerAnalyticsSchema(Schema):
+    customer_id = fields.UUID(required=True)
+    customer_name = fields.Str(required=True)
+    customer_email = fields.Email(required=True)
+    metrics = fields.Nested(CustomerMetricsSchema, required=True)
+    analytics = fields.Nested(CustomerAnalyticsSchema, required=True)
 
 class PaginatedCustomerAnalyticsSchema(Schema):
-    items = fields.List(fields.Nested(CustomerAnalyticsSchema), required=True)
+    data = fields.List(fields.Nested(CustomerAnalyticsSchema), required=True)
     total = fields.Int(required=True)
     page = fields.Int(required=True)
     per_page = fields.Int(required=True)

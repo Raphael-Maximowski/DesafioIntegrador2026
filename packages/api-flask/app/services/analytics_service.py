@@ -1,140 +1,94 @@
-from datetime import datetime
-import pandas as pd
+from app.repositories.repository import get_customer_metrics
 
-from app.respositories.repository import (
-    get_orders_by_customer,
-    _empty_metrics,
+from app.services.ml_service import (
+    predict_churn_customer,
+    calculate_scoring_customer,
+    load_model,
+    FEATURES,
+    pipeline_process_data
+)
+
+from app.repositories.repository import (
     get_customers_metrics_paginated
 )
 
-from app.services.ml_service import load_model
+import pandas as pd
 
+def get_customer_analytics(customer_id):
+    customer = get_customer_metrics(customer_id)
 
-def build_metrics(row):
-    total_orders = row.total_orders if row.total_orders is not None else 0
-    total_spent = float(row.total_spent if row.total_spent is not None else 0)
+    if not customer:
+        return None
 
-    last_order = row.last_order if row.last_order is not None else datetime.utcnow()
+    churn_probability = predict_churn_customer(
+        customer_id
+    )
 
-    days_since_last_order = (datetime.utcnow() - last_order).days
-    frequency = total_orders / 12
+    score = calculate_scoring_customer(
+        customer_id
+    )
 
     return {
-        "total_orders": total_orders,
-        "total_spent": total_spent,
-        "avg_ticket": total_spent / total_orders if total_orders else 0,
-        "days_since_last_order": days_since_last_order,
-        "frequency": frequency
+        "customer_id": customer["customer_id"],
+        "customer_name": customer["customer_name"],
+        "customer_email": customer["customer_email"],
+
+        "metrics": {
+            "total_orders": customer["total_orders"],
+            "total_spent": customer["total_spent"],
+            "avg_ticket": customer["avg_ticket"],
+            "days_since_last_order": customer["days_since_last_order"],
+            "frequency": customer["frequency"]
+        },
+
+        "analytics": {
+            "churn_probability": churn_probability,
+            "score": score
+        }
     }
 
+def get_customers_analytics_paginated(page=1, per_page=20):
+    customers, total = get_customers_metrics_paginated(
+        page,
+        per_page
+    )
 
-def classify_risk(probability):
-    if probability < 0.3:
-        return "Baixo"
-    elif probability < 0.7:
-        return "Médio"
-    return "Alto"
-
-
-def predict_churn_probability(metrics):
-    model = load_model("churn")
-
-    FEATURE_COLUMNS = [
-        "total_orders",
-        "total_spent",
-        "avg_ticket",
-        "days_since_last_order",
-        "frequency"
-    ]
-
-    features = pd.DataFrame([[
-        metrics[col] for col in FEATURE_COLUMNS
-    ]], columns=FEATURE_COLUMNS)
-
-    return round(float(model.predict_proba(features)[0][1]), 4)
-
-
-def predict_purchase_probability(metrics):
-    model = load_model("purchase")
-
-    FEATURE_COLUMNS = [
-        "total_orders",
-        "total_spent",
-        "avg_ticket",
-        "days_since_last_order",
-        "frequency"
-    ]
-
-    features = pd.DataFrame([[
-        metrics[col] for col in FEATURE_COLUMNS
-    ]], columns=FEATURE_COLUMNS)
-
-    return round(float(model.predict_proba(features)[0][1]), 4)
-
-
-def get_customer_metrics(customer_id):
-    orders = get_orders_by_customer(customer_id)
-
-    if not orders:
+    if not customers:
         return {
-            "customer_id": customer_id,
-            "metrics": _empty_metrics()
+            "data": [],
+            "total": total
         }
 
-    total_orders = len(orders)
-    total_spent = sum(o["value"] for o in orders)
-    avg_ticket = total_spent / total_orders
-    days_since_last_order = max(o["days_ago"] for o in orders)
+    result = []
 
-    frequency = total_orders / 12
+    for customer in customers:
+        customer_id = customer["customer_id"]
 
-    metrics = {
-        "total_orders": total_orders,
-        "total_spent": round(total_spent, 2),
-        "avg_ticket": round(avg_ticket, 2),
-        "days_since_last_order": days_since_last_order,
-        "frequency": round(frequency, 2)
-    }
+        result.append({
+            "customer_id": customer["customer_id"],
+            "customer_name": customer["customer_name"],
+            "customer_email": customer["customer_email"],
+            "metrics": {
+                "total_orders": customer["total_orders"],
+                "total_spent": customer["total_spent"],
+                "avg_ticket": customer["avg_ticket"],
+                "days_since_last_order": customer["days_since_last_order"],
+                "frequency": customer["frequency"]
+            },
+            "analytics": {
+                "churn_probability": predict_churn_customer(
+                    customer_id
+                ),
 
-    churn_prob = predict_churn_probability(metrics)
-    purchase_prob = predict_purchase_probability(metrics)
-
-    return {
-        "customer_id": customer_id,
-        "metrics": metrics,
-        "churn_probability": churn_prob,
-        "churn_score": round(churn_prob * 100, 2),
-        "risk_level": classify_risk(churn_prob),
-        "purchase_probability": purchase_prob,
-        "purchase_score": round(purchase_prob * 100, 2)
-    }
-
-
-def get_all_customers_metrics(page=1, per_page=20):
-    results, total = get_customers_metrics_paginated(page, per_page)
-
-    customers = []
-
-    for row in results:
-        metrics = build_metrics(row)
-
-        churn_prob = predict_churn_probability(metrics)
-        purchase_prob = predict_purchase_probability(metrics)
-
-        customers.append({
-            "customer_id": row.customer_id,
-            "metrics": metrics,
-            "churn_probability": churn_prob,
-            "purchase_probability": purchase_prob,
-            "churn_score": round(churn_prob * 100, 2),
-            "purchase_score": round(purchase_prob * 100, 2),
-            "days_since_last_order": metrics["days_since_last_order"],
-            "frequency": metrics["frequency"]
+                "score": calculate_scoring_customer(
+                    customer_id
+                )
+            }
         })
 
     return {
-        "items": customers,
-        "total": total,
         "page": page,
-        "per_page": per_page
+        "per_page": per_page,
+        "total": total,
+        "data": result
     }

@@ -7,10 +7,12 @@ blp = Blueprint("train", __name__, description="Treinamento de modelos de machin
 @blp.response(200, description="Modelo treinado com sucesso")
 def train_model_route():
     try:
-        train_models()
+        result = train_models()
+
         return {
             "status": "success",
-            "message": "Modelo treinado com sucesso"
+            "message": "Modelos treinados com sucesso",
+            "metrics": result
         }
     except Exception as e:
         return {
